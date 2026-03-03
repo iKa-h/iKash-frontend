@@ -1,24 +1,33 @@
 "use client";
 
-import { useWallet } from "../hooks/useWallet";
+import { useWalletContext } from "../context/WalletContext";
 
 export function ConnectWalletButton() {
-    const { publicKey, isConnected, isLoading, error, connect, disconnect } = useWallet();
+  const { publicKey, provider, isConnected, isLoading, error, connect, disconnect } =
+    useWalletContext();
 
-    const shortKey = publicKey ? `${publicKey.slice(0, 6)}...${publicKey.slice(-4)}` : null;
+  const shortKey = publicKey
+    ? `${publicKey.slice(0, 6)}...${publicKey.slice(-4)}`
+    : null;
 
+  if (isConnected) {
     return (
-        <div>
-            {isConnected ? (
-                <button onClick={disconnect}>
-                    {shortKey} - Disconnect
-                </button>
-            ) : (
-                <button onClick={connect} disabled={isLoading}>
-                    {isLoading ? "Connecting..." : "Connect Freighter"}
-                </button>
-            )}
-            {error && <p className="color: bg-red-500">{error}</p>}
-        </div>
+      <div>
+        <p>{provider === "freighter" ? "Freighter" : "LOBSTR"} — {shortKey}</p>
+        <button onClick={disconnect}>Desconectar</button>
+      </div>
     );
+  }
+
+  return (
+    <div>
+      <button className="p-5" onClick={() => connect("freighter")} disabled={isLoading}>
+        {isLoading ? "Conectando..." : "Conectar Freighter"}
+      </button>
+      <button className="p-5" onClick={() => connect("lobstr")} disabled={isLoading}>
+        {isLoading ? "Conectando..." : "Conectar LOBSTR"}
+      </button>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+    </div>
+  );
 }

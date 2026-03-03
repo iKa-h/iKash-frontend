@@ -1,4 +1,4 @@
 export { WalletProvider } from "./presentation/context/WalletContext";
-export { useWallet } from "./presentation/hooks/useWallet";
+export { useWalletContext as useWallet } from "./presentation/context/WalletContext";
 export { ConnectWalletButton } from "./presentation/components/ConnectWalletButton";
-export type { WalletState, WalletActions, WalletContext } from "./domain/wallet.types";
+export type { WalletState, WalletActions, WalletContext, WalletProvider as WalletProviderType } from "./domain/wallet.types";
