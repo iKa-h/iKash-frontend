@@ -2,7 +2,6 @@ import Image from "next/image";
 
 type HeaderProps = {
     name: string;
-    balance: number
 }
 
 export function Header({ name }: HeaderProps) {

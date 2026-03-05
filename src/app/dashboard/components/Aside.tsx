@@ -4,10 +4,10 @@ import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 
 const links = [
-    { href: '/', label: 'Home', icon: '/home-icon.svg' },
-    { href: '/p2p', label: 'P2P', icon: '/p2p-icon.svg' },
-    { href: '/transactions', label: 'Transactions', icon: '/transaction-icon.svg' },
-    { href: '/wallet', label: 'Wallet', icon: '/wallet-icon.svg' },
+    { href: '/', label: 'Home', icon: '/home-icon.svg', selected: '/home-selected-icon.svg' },
+    { href: '/p2p', label: 'P2P', icon: '/p2p-icon.svg', selected: '/p2p-selected-icon.svg' },
+    { href: '/transactions', label: 'Transactions', icon: '/transaction-icon.svg', selected: '/transaction-selected-icon.svg' },
+    { href: '/wallet', label: 'Wallet', icon: '/wallet-icon.svg', selected: '/home-selected-icon.svg' },
 ]
 
 export function Aside() {
@@ -26,7 +26,7 @@ export function Aside() {
             </div>
 
             <nav className="flex flex-col gap-[30px] pt-20">
-                {links.map(({ href, label, icon }) => (
+                {links.map(({ href, label, icon, selected }) => (
                     <Link
                         key={href}
                         href={href}
@@ -37,12 +37,20 @@ export function Aside() {
                             }`}
                     >
                         <span>
-                            <Image
-                                src={icon}
-                                width={18}
-                                height={18}
-                                alt='iconos del aside'
-                            />
+                            {pathname === href
+                                ? <Image
+                                    src={selected}
+                                    width={18}
+                                    height={18}
+                                    alt='iconos del aside'
+                                />
+                                : <Image
+                                    src={icon}
+                                    width={18}
+                                    height={18}
+                                    alt='iconos del aside'
+                                />
+                            }
                         </span>
                         <span className='text-[18px]'>{label}</span>
                     </Link>
