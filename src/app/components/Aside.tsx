@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 
 const links = [
-    { href: '/', label: 'Home', icon: '/home-icon.svg', selected: '/home-selected-icon.svg' },
+    { href: '/dashboard', label: 'Home', icon: '/home-icon.svg', selected: '/home-selected-icon.svg' },
     { href: '/p2p', label: 'P2P', icon: '/p2p-icon.svg', selected: '/p2p-selected-icon.svg' },
     { href: '/transactions', label: 'Transactions', icon: '/transaction-icon.svg', selected: '/transaction-selected-icon.svg' },
     { href: '/wallet', label: 'Wallet', icon: '/wallet-icon.svg', selected: '/home-selected-icon.svg' },

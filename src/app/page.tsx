@@ -1,9 +1,11 @@
-import DashboardPage from "./dashboard/page";
+"use client";
+
+import { ConnectWalletButton } from "@/features/wallet";
 
 export default function Home() {
   return (
     <div>
-      <DashboardPage />
+      <ConnectWalletButton />
     </div>
   );
 }

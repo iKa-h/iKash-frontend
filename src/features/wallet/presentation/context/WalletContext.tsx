@@ -10,6 +10,7 @@ import {
 } from "react";
 import { walletService } from "../../application/wallet.service";
 import type { WalletContext, WalletState, WalletProvider } from "../../domain/wallet.types";
+import { useRouter } from "next/navigation";
 
 const Context = createContext<WalletContext | null>(null);
 
@@ -38,11 +39,14 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         });
     }, []);
 
+    const router = useRouter();
+
     const connect = useCallback(async (provider: WalletProvider) => {
         setState((s) => ({ ...s, isLoading: true, error: null }));
         try {
             const publicKey = await walletService.connect(provider);
             setState({ publicKey, provider, isConnected: true, isLoading: false, error: null });
+            router.push("/dashboard");
         } catch (err) {
             const msg = err instanceof Error ? err.message : "Error desconocido";
             setState((s) => ({ ...s, isLoading: false, error: msg }));

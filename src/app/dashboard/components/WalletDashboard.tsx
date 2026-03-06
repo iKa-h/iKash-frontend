@@ -1,8 +1,7 @@
 "use client"
 
-type walletProps = {
-    balance: number
-}
+import { useWallet } from "@/features/wallet";
+import { useWalletBalance } from "@/features/wallet/presentation/hooks/useWalletBalance";
 
 const assets = [
     {
@@ -49,7 +48,10 @@ const assets = [
     },
 ];
 
-export function WalletDashboard({balance}: walletProps) {
+export function WalletDashboard() {
+    const { publicKey, provider, isConnected } = useWallet();
+    const { balance, isLoading, error } = useWalletBalance(publicKey);
+
     return (
         <div className="w-[1232px] h-[984px] border-r border-[#1F2937] pt-12">
             <div
@@ -75,9 +77,9 @@ export function WalletDashboard({balance}: walletProps) {
                     <div>
                         <div className="flex items-baseline gap-3">
                             <span className="text-[72px] font-bold text-white tracking-tight">
-                                {balance}
+                                {isLoading ? "..." : error ? "-" : balance}
                             </span>
-                            <span className="text-[#8F8389] text-[24px] tracking-[-3.6px]">USD</span>
+                            <span className="text-[#8F8389] text-[24px] tracking-[-3.6px]">XLM</span>
                         </div>
                         <div className="flex items-center gap-1 mt-3">
                             <svg viewBox="0 0 10 10" className="w-3 h-3" fill="none">
@@ -85,6 +87,7 @@ export function WalletDashboard({balance}: walletProps) {
                             </svg>
                             <span className="text-[#bced09] text-xs tracking-wide">+12.5% this month</span>
                         </div>
+                        {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
                     </div>
 
                     <div className="flex gap-3">

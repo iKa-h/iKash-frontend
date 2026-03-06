@@ -1,10 +1,12 @@
 "use client";
 
+import { useReducer } from "react";
 import { useWalletContext } from "../context/WalletContext";
+import type { WalletProvider } from "../../domain/wallet.types";
+import { useRouter } from "next/router";
 
 export function ConnectWalletButton() {
-  const { publicKey, provider, isConnected, isLoading, error, connect, disconnect } =
-    useWalletContext();
+  const { publicKey, provider, isConnected, isLoading, error, connect, disconnect } = useWalletContext();
 
   const shortKey = publicKey
     ? `${publicKey.slice(0, 6)}...${publicKey.slice(-4)}`

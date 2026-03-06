@@ -9,7 +9,7 @@ export default function DashboardPage() {
             <div className="flex flex-col flex-1 min-w-0">
                 <Header description="account overview" title= "Welcome back," name="Alexander" />
                 <main className="flex items-center justify-between pl-12">
-                    <WalletDashboard balance={12000.00} />
+                    <WalletDashboard />
                 </main>
             </div>
         </div>
