@@ -2,6 +2,7 @@
 
 import { useWallet } from "@/features/wallet";
 import { useWalletBalance } from "@/features/wallet/presentation/hooks/useWalletBalance";
+import { useRouter } from "next/navigation";
 
 const assets = [
     {
@@ -49,8 +50,11 @@ const assets = [
 ];
 
 export function WalletDashboard() {
-    const { publicKey, provider, isConnected } = useWallet();
+    const { publicKey } = useWallet();
     const { balance, isLoading, error } = useWalletBalance(publicKey);
+
+    // Esto es de prueba, hay que quitarlo
+    const nav = useRouter();
 
     return (
         <div className="w-[1232px] h-[984px] border-r border-[#1F2937] pt-12">
@@ -140,7 +144,9 @@ export function WalletDashboard() {
                     ))}
                 </div>
             </div>
-
+            <div className="pt-20">
+                <button onClick={() => nav.push('/test')}>Test</button>
+            </div>
         </div>
     );
 }

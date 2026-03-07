@@ -20,17 +20,17 @@ export function useWalletBalance(publicKey: string | null) {
 
     setState({ balance: null, isLoading: true, error: null });
 
-    fetch(`http://localhost:3000/stellar/account/${publicKey}`)
+    fetch(`http://localhost:3000/stellar/balances/${publicKey}`)
       .then((res) => {
         if (!res.ok) throw new Error("Account not found");
         return res.json();
       })
       .then((data) => {
-        const xlm = data.balances.find(
+        const xlm = data.find(
           (b: { asset_type: string }) => b.asset_type === "native"
         );
         setState({
-          balance: xlm ? parseFloat(xlm.balance).toFixed(2) : "0.00",
+          balance: xlm ? parseFloat(xlm.balance).toFixed(7) : "0.00",
           isLoading: false,
           error: null,
         });
