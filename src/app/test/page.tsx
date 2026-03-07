@@ -1,23 +1,51 @@
-'use client'
+"use client";
 
+import { useState } from "react";
 import { useWallet } from "@/features/wallet";
-import { useWalletTransactions } from "@/features/wallet/presentation/hooks/useWalletTransaction";
+import { useWalletPay } from "@/features/wallet/presentation/hooks/useWalletPay";
 
 export default function Test() {
     const { publicKey } = useWallet();
-    const { transactions, isLoading, error } = useWalletTransactions(publicKey);
+    const { isLoading, error, success, sendPayment } = useWalletPay(publicKey);
 
-    if (isLoading) return <p>Cargando...</p>;
-    if (error) return <p>Error: {error}</p>;
+    const [destination, setDestination] = useState("");
+    const [amount, setAmount] = useState("");
+    const [memo, setMemo] = useState("");
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        await sendPayment({ destination, amount, memo });
+    };
 
     return (
-        <div>
-            {transactions.map((trx) => (
-                <div key={trx.id} className="">
-                    <p>id: {trx.id}</p>
-                    <p>source account: {trx.source_account}</p>
-                </div>
-            ))}
-        </div>
+        <form onSubmit={handleSubmit}>
+            <input
+                type="text"
+                placeholder="Destino"
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
+                required
+            />
+            <input
+                type="text"
+                placeholder="Monto"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                required
+            />
+            <input
+                type="text"
+                placeholder="Memo"
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+            />
+
+            <button type="submit" disabled={isLoading}>
+                {isLoading ? "Enviando..." : "Enviar"}
+            </button>
+
+            {error && <p style={{ color: "red" }}>{error}</p>}
+            {success && <p style={{ color: "green" }}>¡Pago enviado!</p>}
+        </form>
     );
 }
