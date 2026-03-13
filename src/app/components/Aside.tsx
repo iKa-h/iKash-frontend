@@ -25,7 +25,7 @@ export function Aside() {
                 />
             </div>
 
-            <nav className="flex flex-col gap-[30px] pt-20">
+            <nav className="flex flex-col gap-7.5 pt-20">
                 {links.map(({ href, label, icon, selected }) => (
                     <Link
                         key={href}
