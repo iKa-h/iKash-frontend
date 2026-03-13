@@ -1,11 +1,11 @@
 "use client";
 
-import { ConnectWalletButton } from "@/features/wallet";
+import HomePage from "./home/page";
 
 export default function Home() {
   return (
     <div>
-      <ConnectWalletButton />
+      <HomePage />
     </div>
   );
 }
