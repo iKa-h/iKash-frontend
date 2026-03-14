@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { CreateUser } from "../utils/createUser";
-import { Users } from "../utils/users";
+import { CreateUser } from "../models/createUser";
+import { Users } from "../models/users";
 
-export function useCreateUser(publicKey: string | null) {
+export function useUserCreation(publicKey: string | null) {
     const [userResponse, setUserResponse] = useState<Users | null>(null);
 
     const createUser = async (user: CreateUser) => {

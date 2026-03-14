@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Users } from "../utils/users";
+import { Users } from "../models/users";
 
 export function useGetUser(publicKey: string | null, userId: string) {
     const [user, setUser] = useState<Users | null>(null);
