@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Offer } from "../models/offers";
+import { Offer } from "../models/offer";
 import { CreateOffer } from "../models/createOffer";
 
 export function useOfferCreation(publicKey: string | null) {

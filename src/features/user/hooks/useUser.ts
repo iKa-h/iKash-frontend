@@ -9,7 +9,7 @@ export function useGetUser(publicKey: string | null, userId: string) {
 
         fetch("http://localhost:3000/users/" + userId)
             .then((res) => {
-                if (!res) throw new Error('User not found')
+                if (!res.ok) throw new Error('User not found')
                     return res.json()
             })
             .then((data) => {

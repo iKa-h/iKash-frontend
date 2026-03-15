@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Offer } from "../models/offers";
+import { Offer } from "../models/offer";
 
 export function useOffers(publicKey: string | null) {
     const [offers, setOffers] = useState<Offer[]>([]);
