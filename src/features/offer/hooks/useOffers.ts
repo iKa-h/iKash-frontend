@@ -9,7 +9,6 @@ export function useOffers(publicKey: string | null) {
         fetch("http://localhost:3000/offers")
             .then(response => response.json())
             .then(data => {
-                console.log(data);
                 setOffers(data);
             })
     }, [publicKey])

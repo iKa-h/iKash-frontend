@@ -19,7 +19,6 @@ export function useOfferCreation(publicKey: string | null) {
             if (!res.ok) throw new Error('Create offer error');
             const data = await res.json();
             setOffer(data);
-            console.log(data);
         } catch (error) {
             console.error('Error', error);
         }

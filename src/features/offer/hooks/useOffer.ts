@@ -14,7 +14,6 @@ export function useOffer(publicKey: string | null, offerId: string) {
             })
             .then(data => {
                 setOffer(data);
-                console.log(data);
             });
     }, [publicKey, offerId]);
 

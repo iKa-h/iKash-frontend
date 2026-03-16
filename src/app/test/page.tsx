@@ -1,23 +1,25 @@
 "use client";
 
-import { useOfferUpdate } from "@/features/offer/hooks/useOfferUpdate";
+import { UsePaymentMethodUpdate } from "@/features/paymentMethod/hooks/usePaymentMethodUpdate";
 import { useWallet } from "@/features/wallet";
 
 export default function Test() {
     const { publicKey } = useWallet();
-    const { updateOffer } = useOfferUpdate(publicKey);
+    const { updateMethod } = UsePaymentMethodUpdate(publicKey);
 
-    const handleUpdateOffer = () => {
-        updateOffer("b222725b-a5de-403b-ae10-98a1fc99e6ce", {
-            status: "active"
-        });
+    const handle = () => {
+        updateMethod(
+            "68e2346f-b12f-42ae-898b-87f2b627f6ed",
+            {
+                bankName: "Banco Jeff"
+            })
     }
 
     return (
         <div>
             <h1>Tests</h1>
-            <button className="cursor-pointer bg-amber-900" onClick={handleUpdateOffer}>
-                Update Offer
+            <button className="cursor-pointer bg-amber-900" onClick={handle}>
+                Update Payment Method
             </button>
         </div>
     );

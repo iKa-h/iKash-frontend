@@ -18,7 +18,6 @@ export function useOfferUpdate(publicKey: string | null) {
             if (!res.ok) throw new Error('Update offer error');
             const data = await res.json();
             setOfferResponse(data);
-            console.log(data);
         } catch (error) {
             console.error('Error updating offer:', error);
         }

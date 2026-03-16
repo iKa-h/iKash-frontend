@@ -13,8 +13,7 @@ export function useGetUser(publicKey: string | null, userId: string) {
                     return res.json()
             })
             .then((data) => {
-                setUser(data)
-                console.log(data)
+                setUser(data);
             })
     }, [publicKey, userId]);
 

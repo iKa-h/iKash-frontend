@@ -19,7 +19,6 @@ export function useUserCreation(publicKey: string | null) {
             if (!res.ok) throw new Error('Create user error');
             const data = await res.json();
             setUserResponse(data);
-            console.log(data);
         } catch (error) {
             console.error('Error creating user:', error);
         }

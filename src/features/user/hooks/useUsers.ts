@@ -14,8 +14,7 @@ export function useGetUsers(publicKey: string | null) {
                 return res.json();
             })
             .then((data) => {
-                setUsers(data)
-                console.log(data)
+                setUsers(data);
             });
     }, [publicKey]);
     return { users };
