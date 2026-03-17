@@ -1,18 +1,15 @@
 "use client";
 
-import { UsePaymentMethodUpdate } from "@/features/paymentMethod/hooks/usePaymentMethodUpdate";
+import { useOffer } from "@/features/offer/hooks/useOffer";
+import { useOrders } from "@/features/order/hooks/useOrders";
 import { useWallet } from "@/features/wallet";
 
 export default function Test() {
-    const { publicKey } = useWallet();
-    const { updateMethod } = UsePaymentMethodUpdate(publicKey);
+    useOrders();
+    
 
     const handle = () => {
-        updateMethod(
-            "68e2346f-b12f-42ae-898b-87f2b627f6ed",
-            {
-                bankName: "Banco Jeff"
-            })
+        console.log('handle')
     }
 
     return (
