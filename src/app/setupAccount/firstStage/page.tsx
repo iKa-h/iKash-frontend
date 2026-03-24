@@ -3,15 +3,20 @@
 import Image from 'next/image'
 
 import userIcon from '../../../../public/user-icon-selected.svg'
+import { Header } from '../components/Header'
+import { useRouter } from 'next/navigation'
 
 export default function FirstStage() {
+    const nav = useRouter();
 
-    const handleSubmit = () => {
-        console.log('submit')
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        nav.push('/setupAccount/secondStage');
     }
 
     return (
-        <div>
+        <div className="flex flex-col justify-center items-center h-screen gap-6">
+            <Header />
             <form onSubmit={handleSubmit} className='flex flex-col gap-8'>
                 <div className="bg-[#12141A] rounded-2xl p-6 flex flex-col gap-6 w-150">
                     <div className="flex items-center gap-2">
