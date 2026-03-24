@@ -57,7 +57,7 @@ export function WalletDashboard() {
     const nav = useRouter();
 
     return (
-        <div className="w-[1232px] h-[984px] border-r border-[#1F2937] pt-12">
+        <div className="w-308 h-246 border-r border-[#1F2937] pt-12">
             <div
                 className="relative rounded-2xl overflow-hidden p-8 w-[1136] h-[218]"
                 style={{
