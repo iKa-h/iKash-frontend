@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { Header } from "../components/Header";
 import { useState } from 'react';
 import currencies from './utils/currencies';
+import { Button } from '../components/Button';
+import { Line } from '../components/Line';
 
 export default function SecondStage() {
     const nav = useRouter();
@@ -22,6 +24,7 @@ export default function SecondStage() {
 
     return (
         <div className="flex flex-col justify-center items-center h-screen gap-6">
+            <Line />
             <Header />
             <form onSubmit={handleSubmit} className='flex flex-col gap-8'>
                 <div className="bg-[#12141A] rounded-2xl p-6 flex flex-col gap-6 w-150">
@@ -83,8 +86,9 @@ export default function SecondStage() {
                         )}
                     </div>
                 </div>
-                <button type="submit" className='bg-[#BCED09] uppercase w-150 h-17 rounded-xl text-[20px] font-bold text-[#010308]'>Next Step</button>
+                <Button text='Next Step' />
             </form>
+            <Line />
         </div>
     );
 }
