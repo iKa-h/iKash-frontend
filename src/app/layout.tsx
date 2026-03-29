@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { WalletProvider } from "../features/wallet";
+import { EscrowProvider } from "../features/escrow";
 import { Space_Grotesk } from "next/font/google";
 
 const spaceGrotesk = Space_Grotesk({
@@ -24,7 +25,9 @@ export default function RootLayout({
         className={spaceGrotesk.className}
       >
         <WalletProvider>
-          {children}
+          <EscrowProvider>
+            {children}
+          </EscrowProvider>
         </WalletProvider>
       </body>
     </html>
