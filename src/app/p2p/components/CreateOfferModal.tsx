@@ -1,27 +1,14 @@
-"use client";
+'use client';
 
-import { useChatMessages } from "@/features/chat/hooks/useChatMessages";
-import { Message } from "@/features/chat/models/message";
-import { useEffect, useState } from "react";
-
-export default function Test() {
-    const [isOpen, setIsOpen] = useState(false);
+export function CreateOfferModal(isOpen: boolean) {
 
     return (
-        <div className="min-h-screen bg-[#0f1117] flex items-center justify-center">
-
-            <button
-                onClick={() => setIsOpen(true)}
-                className="bg-[#4ade80] text-black font-semibold px-6 py-3 rounded-xl hover:bg-[#22c55e] transition-colors"
-            >
-                Abrir Modal
-            </button>
-
+        <>
             {/* Overlay */}
             {isOpen && (
                 <div
                     className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-end"
-                    onClick={() => setIsOpen(false)} // cierra al clickear afuera
+                    onClick={() => isOpen = false} // cierra al clickear afuera
                 >
                     {/* Modal */}
                     <div
@@ -32,7 +19,7 @@ export default function Test() {
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-white text-lg font-semibold">Título del Modal</h2>
                             <button
-                                onClick={() => setIsOpen(false)}
+                                onClick={() => isOpen = false}
                                 className="text-gray-400 hover:text-white transition-colors"
                             >
                                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -52,13 +39,13 @@ export default function Test() {
                         {/* Buttons */}
                         <div className="flex gap-3">
                             <button
-                                onClick={() => setIsOpen(false)}
+                                onClick={() => isOpen = false}
                                 className="flex-1 border border-white/10 text-gray-400 font-semibold px-4 py-3 rounded-xl hover:bg-white/5 transition-colors"
                             >
                                 Cancelar
                             </button>
                             <button
-                                onClick={() => setIsOpen(false)}
+                                onClick={() => isOpen = false}
                                 className="flex-1 bg-[#4ade80] text-black font-semibold px-4 py-3 rounded-xl hover:bg-[#22c55e] transition-colors"
                             >
                                 Confirmar
@@ -67,7 +54,6 @@ export default function Test() {
                     </div>
                 </div>
             )}
-
-        </div>
+        </>
     );
 }
