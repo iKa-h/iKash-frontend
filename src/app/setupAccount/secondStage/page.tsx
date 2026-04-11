@@ -77,7 +77,7 @@ export default function SecondStage() {
                                             setOpen(false);
                                         }}
                                         className={`px-5 py-3 text-[16px] cursor-pointer hover:bg-white/10 transition-colors
-                        ${currency === c ? 'text-[#BCED09]' : 'text-[#F1F5F9]'}`}
+                                        ${currency === c ? 'text-[#BCED09]' : 'text-[#F1F5F9]'}`}
                                     >
                                         {c}
                                     </div>
