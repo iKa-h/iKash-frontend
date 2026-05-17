@@ -4,12 +4,32 @@ import Image from 'next/image'
 
 import { CloseModalProps } from "@/app/utils/closeModalProps";
 import arrow from '../../../../public/down-arrow.svg'
-import { useState } from "react";
-import Assets from "../utils/assets";
+import { useState, useEffect } from "react";
+import { useWallet, useWalletBalance, type AssetBalance } from "@/features/wallet";
 
 export function SendFundsModal({ onClose }: CloseModalProps) {
+    const { publicKey } = useWallet();
+    const { balances } = useWalletBalance(publicKey);
+
+    const defaultAsset: AssetBalance = {
+        asset_type: "native",
+        asset_code: "XLM",
+        asset_issuer: null,
+        balance: "0.00"
+    };
+
+    const currentBalances = balances.length > 0 ? balances : [defaultAsset];
+    const [asset, setAsset] = useState<AssetBalance>(currentBalances[0]);
     const [isAssetOpen, setIsAssetOpen] = useState(false);
-    const [asset, setAsset] = useState(Assets[0]);
+
+    useEffect(() => {
+        if (balances.length > 0) {
+            setAsset(balances[0]);
+        }
+    }, [balances]);
+
+    const getAssetName = (a: AssetBalance) => a.asset_type === "native" ? "XLM" : (a.asset_code || "UNKNOWN");
+    const getFormattedBalance = (a: AssetBalance) => parseFloat(a.balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 7 });
 
     return (
         <div
@@ -41,7 +61,7 @@ export function SendFundsModal({ onClose }: CloseModalProps) {
                     <div className="flex flex-col">
                         <p className="text-[#C2C7D0] text-[12px] mb-2 uppercase">Recipient Address or Alias</p>
                         <input type="text" placeholder="alex.ikash"
-                            className="w-87.5 h-13 rounded-sm border border-[#45493233] bg-[#1B1B21] pl-3"
+                            className="w-87.5 h-13 rounded-sm border border-[#45493233] bg-[#1B1B21] pl-3 text-white"
                         />
                         <span className="text-[#C2C7D099] text-[10px] mt-2">Verified iKa$h names are cheaper to send to.</span>
                     </div>
@@ -54,8 +74,8 @@ export function SendFundsModal({ onClose }: CloseModalProps) {
                                 onClick={() => setIsAssetOpen(!isAssetOpen)}
                             >
                                 <div className='flex flex-col'>
-                                    <span className="text-[#FFFFFF] text-[14px] font-bold">{asset.name}</span>
-                                    <span className='text-[10px] text-[#C2C7D0] uppercase'>Balance: {asset.balance}</span>
+                                    <span className="text-[#FFFFFF] text-[14px] font-bold">{getAssetName(asset)}</span>
+                                    <span className='text-[10px] text-[#C2C7D0] uppercase'>Balance: {getFormattedBalance(asset)}</span>
                                 </div>
                                 <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
                                     <Image src={arrow} width={24} height={24} alt="flecha del select" />
@@ -63,9 +83,9 @@ export function SendFundsModal({ onClose }: CloseModalProps) {
                             </div>
                             {isAssetOpen && (
                                 <div className="absolute z-10 w-full mt-1 bg-[#1a1d27] rounded-xl overflow-hidden border border-white/10">
-                                    {Assets.map((c) => (
+                                    {currentBalances.map((c, idx) => (
                                         <div
-                                            key={c.id}
+                                            key={`${getAssetName(c)}-${idx}`}
                                             onClick={() => {
                                                 setAsset(c);
                                                 setIsAssetOpen(false);
@@ -74,10 +94,10 @@ export function SendFundsModal({ onClose }: CloseModalProps) {
                                             ${asset === c ? 'text-[#BCED09]' : 'text-[#FFFFFF]'}`}
                                         >
                                             <div className='flex flex-col'>
-                                                <span>{c.name}</span>
+                                                <span>{getAssetName(c)}</span>
                                                 <span className={`text-[10px] uppercase 
                                                     ${asset === c ? 'text-[#BCED09]' : 'text-[#C2C7D0]'}`}>
-                                                    Balance: {c.balance}
+                                                    Balance: {getFormattedBalance(c)}
                                                 </span>
                                             </div>
                                         </div>
@@ -101,7 +121,7 @@ export function SendFundsModal({ onClose }: CloseModalProps) {
                                 />
                                 <div className="absolute inset-y-0 right-5 flex items-center pointer-events-none">
                                     <span className="text-[14px] text-[#94A3B8] font-bold select-none">
-                                        XLM
+                                        {getAssetName(asset)}
                                     </span>
                                 </div>
                             </div>

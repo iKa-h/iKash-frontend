@@ -14,7 +14,7 @@ export function Aside() {
     const pathname = usePathname()
 
     return (
-        <aside className="hidden md:flex w-[288px] min-h-screen bg-[#343434] flex-col p-8">
+        <aside className="hidden md:flex w-[288px] sticky top-0 h-screen self-start shrink-0 overflow-y-auto bg-[#343434] flex-col p-8">
 
             <div className="pl-[12px] pt-4">
                 <Image

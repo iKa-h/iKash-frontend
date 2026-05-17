@@ -8,16 +8,15 @@ import { FormEvent, useEffect, useState } from 'react';
 import cryptoAssets from '../utils/cryptoAssets';
 import { CloseModalProps } from '@/app/utils/closeModalProps';
 import { useOffers } from '@/features/offer/hooks/useOffers';
+import { useUser } from '@/features/user/presentation/context/UserContext';
 import { useRouter } from 'next/navigation';
 
 export function CreateOfferModal({ onClose }: CloseModalProps) {
+    const { currentUser } = useUser();
     const [isCryptoAssetOpen, setIsCryptoAssetOpen] = useState(false);
     const [cryptoAsset, setCryptoAsset] = useState(cryptoAssets[0]);
     const [tab, setTab] = useState("Buy");
     const [form, setForm] = useState({
-        creatorId: '55981f90-9569-4f2c-b24b-43d1ba6960bf',
-        type: '',
-        assetCode: '',
         price: '',
         minAmount: '',
         maxAmount: '',
@@ -39,13 +38,18 @@ export function CreateOfferModal({ onClose }: CloseModalProps) {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        if (!currentUser || currentUser.kycStatus !== "approved") {
+            alert("KYC verification required to publish offers.");
+            return;
+        }
+
         const newOffer = await createOffer({
             ...form,
+            creatorId: currentUser.userId,
             type: tab.toLowerCase(),
             assetCode: cryptoAsset.value,
         });
         if (newOffer) {
-            //onClose();
             window.location.reload();
         }
     }

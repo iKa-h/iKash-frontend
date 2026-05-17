@@ -5,6 +5,7 @@ import {
     useCallback,
     useContext,
     useEffect,
+    useRef,
     useState,
     type ReactNode,
 } from "react";
@@ -27,23 +28,40 @@ const initialState: WalletState = {
 export function WalletProvider({ children }: { children: ReactNode }) {
     const [state, setState] = useState<WalletState>(initialState);
 
-    // Restaura sesión al montar
-    useEffect(() => {
-        walletService.restoreSession().then((session) => {
-            if (session) {
-                setState((s) => ({
-                    ...s,
-                    publicKey: session.publicKey,
-                    provider: session.provider,
-                    isConnected: true,
-                }));
-            }
-        });
-    }, []);
-
     const router = useRouter();
     const { getOrCreateByWallet } = useUsers();
     const { setCurrentUser, setAccessToken } = useUser();
+
+    // Use refs to avoid stale closures in useEffect without triggering re-runs
+    const getOrCreateRef = useRef(getOrCreateByWallet);
+    const setCurrentUserRef = useRef(setCurrentUser);
+    useEffect(() => { getOrCreateRef.current = getOrCreateByWallet; }, [getOrCreateByWallet]);
+    useEffect(() => { setCurrentUserRef.current = setCurrentUser; }, [setCurrentUser]);
+
+    // Restaura sesión al montar (runs once)
+    useEffect(() => {
+        let cancelled = false;
+        walletService.restoreSession().then(async (session) => {
+            if (cancelled || !session?.publicKey) return;
+
+            setState((s) => ({
+                ...s,
+                publicKey: session.publicKey,
+                provider: session.provider,
+                isConnected: true,
+            }));
+
+            try {
+                const userAccount = await getOrCreateRef.current(session.publicKey);
+                if (!cancelled && userAccount) {
+                    setCurrentUserRef.current(userAccount);
+                }
+            } catch {
+                // Backend might not be running yet; user data stays from localStorage
+            }
+        });
+        return () => { cancelled = true; };
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const connect = useCallback(async (provider: WalletProvider) => {
         setState((s) => ({ ...s, isLoading: true, error: null }));
@@ -66,7 +84,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
             const userAccount = await getOrCreateByWallet(publicKey);
             if (userAccount) {
                 setCurrentUser(userAccount);
-                setCurrentUser(userAccount);
                 if (userAccount.pendingAccountInfo) {
                     router.push("/setupAccount");
                 } else {
@@ -79,7 +96,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
             const msg = err instanceof Error ? err.message : "Error desconocido";
             setState((s) => ({ ...s, isLoading: false, error: msg }));
         }
-    }, [getOrCreateByWallet, setCurrentUser, router]);
+    }, [getOrCreateByWallet, setCurrentUser, setAccessToken, router]);
 
     const disconnect = useCallback(() => {
         walletService.clearSession();
