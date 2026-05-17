@@ -73,9 +73,20 @@ export function SendFundsModal({ onClose }: CloseModalProps) {
                                 className="relative bg-[#0D1117] border border-[#1C2128] rounded-xl px-5 py-4 cursor-pointer"
                                 onClick={() => setIsAssetOpen(!isAssetOpen)}
                             >
-                                <div className='flex flex-col'>
-                                    <span className="text-[#FFFFFF] text-[14px] font-bold">{getAssetName(asset)}</span>
-                                    <span className='text-[10px] text-[#C2C7D0] uppercase'>Balance: {getFormattedBalance(asset)}</span>
+                                <div className='flex items-center gap-3'>
+                                    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-[#1a2a3a] flex items-center justify-center border border-[#2a2a2a] text-white font-bold text-[10px]">
+                                        {getAssetName(asset) === "XLM" ? (
+                                            <Image src="/xlm.png" alt="XLM" width={32} height={32} className="w-full h-full object-cover" />
+                                        ) : getAssetName(asset) === "USDC" ? (
+                                            <Image src="/usdc.png" alt="USDC" width={32} height={32} className="w-full h-full object-cover" />
+                                        ) : (
+                                            getAssetName(asset).slice(0, 3)
+                                        )}
+                                    </div>
+                                    <div className='flex flex-col'>
+                                        <span className="text-[#FFFFFF] text-[14px] font-bold">{getAssetName(asset)}</span>
+                                        <span className='text-[10px] text-[#C2C7D0] uppercase'>Balance: {getFormattedBalance(asset)}</span>
+                                    </div>
                                 </div>
                                 <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
                                     <Image src={arrow} width={24} height={24} alt="flecha del select" />
@@ -93,12 +104,23 @@ export function SendFundsModal({ onClose }: CloseModalProps) {
                                             className={`px-5 py-3 text-[14px] font-bold cursor-pointer hover:bg-white/10 transition-colors
                                             ${asset === c ? 'text-[#BCED09]' : 'text-[#FFFFFF]'}`}
                                         >
-                                            <div className='flex flex-col'>
-                                                <span>{getAssetName(c)}</span>
-                                                <span className={`text-[10px] uppercase 
-                                                    ${asset === c ? 'text-[#BCED09]' : 'text-[#C2C7D0]'}`}>
-                                                    Balance: {getFormattedBalance(c)}
-                                                </span>
+                                            <div className='flex items-center gap-3'>
+                                                <div className="w-7 h-7 rounded-full overflow-hidden shrink-0 bg-[#1a2a3a] flex items-center justify-center border border-[#2a2a2a] text-white font-bold text-[9px]">
+                                                    {getAssetName(c) === "XLM" ? (
+                                                        <Image src="/xlm.png" alt="XLM" width={28} height={28} className="w-full h-full object-cover" />
+                                                    ) : getAssetName(c) === "USDC" ? (
+                                                        <Image src="/usdc.png" alt="USDC" width={28} height={28} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        getAssetName(c).slice(0, 3)
+                                                    )}
+                                                </div>
+                                                <div className='flex flex-col'>
+                                                    <span>{getAssetName(c)}</span>
+                                                    <span className={`text-[10px] uppercase 
+                                                        ${asset === c ? 'text-[#BCED09]' : 'text-[#C2C7D0]'}`}>
+                                                        Balance: {getFormattedBalance(c)}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}

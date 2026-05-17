@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image";
 import { useWallet } from "@/features/wallet";
 import { useWalletBalance } from "@/features/wallet/presentation/hooks/useWalletBalance";
 import { useRouter } from "next/navigation";
@@ -97,8 +98,14 @@ export function WalletDashboard() {
                                     className="flex items-center justify-between p-4 rounded-xl bg-[#161618] border border-[#1f1f1f] hover:border-[#2a2a2a] hover:bg-[#181818] transition-all duration-200 cursor-pointer group"
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-full bg-[#1a2a3a] flex items-center justify-center border border-[#2a2a2a] text-white font-bold text-xs">
-                                            {symbol.slice(0, 3)}
+                                        <div className="w-10 h-10 rounded-full bg-[#1a2a3a] flex items-center justify-center border border-[#2a2a2a] text-white font-bold text-xs overflow-hidden shrink-0">
+                                            {symbol === "XLM" ? (
+                                                <Image src="/xlm.png" alt="XLM" width={40} height={40} className="w-full h-full object-cover" />
+                                            ) : symbol === "USDC" ? (
+                                                <Image src="/usdc.png" alt="USDC" width={40} height={40} className="w-full h-full object-cover" />
+                                            ) : (
+                                                symbol.slice(0, 3)
+                                            )}
                                         </div>
                                         <div>
                                             <p className="text-white font-bold text-sm tracking-wide">{symbol}</p>
