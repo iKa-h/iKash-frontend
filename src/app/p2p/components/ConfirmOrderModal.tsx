@@ -191,6 +191,7 @@ export function ConfirmOrderModal({ offer, creator, onClose }: ConfirmOrderModal
                     buyerAddress: buyerAddress || "",
                     amount: Number(assetAmountVal || 0),
                     title: `Order ${orderData.orderId}`,
+                    assetCode: offer.assetCode || "XLM",
                 });
 
                 const unsignedXdr = escrowResp?.unsignedFundTransaction || escrowResp?.unsignedXDR || escrowResp?.unsignedTransaction || null;

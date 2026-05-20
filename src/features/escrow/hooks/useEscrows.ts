@@ -7,6 +7,7 @@ export interface OpenEscrowParams {
     buyerAddress: string;
     amount: number;
     title: string;
+    assetCode?: string;
 }
 
 export interface FundEscrowParams {
