@@ -66,6 +66,7 @@ export default function Stage1({ onNext }: Stage1Props) {
                         className={`bg-[#01030880] text-[#F1F5F9] text-[16px] rounded-xl px-4 py-3 outline-none border transition-colors ${
                             isAvailable === false ? 'border-red-400' : 'border-[#343434] focus:border-[#BCED09]'
                         }`}
+                        required
                     />
                 </div>
 
@@ -77,7 +78,7 @@ export default function Stage1({ onNext }: Stage1Props) {
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="name@ika$h.io"
                         className="bg-[#01030880] text-[#F1F5F9] text-[16px] rounded-xl px-4 py-3 outline-none border border-[#343434] focus:border-[#BCED09]"
-                        
+                        required
                     />
                 </div>
             </div>
