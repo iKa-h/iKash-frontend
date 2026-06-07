@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import userIcon from '../../../../public/user-icon-selected.svg'
+import userIcon from '../../../../../public/user-icon-selected.svg'
 import { Button } from '../components/Button'
-import { useUsers } from '../../../features/user/hooks/useUsers'
-import { SetupAccountPayload } from '../../../features/user/models/setupAccount'
+import { useUsers } from '../../../../features/user/hooks/useUsers'
+import { SetupAccountPayload } from '../../../../features/user/models/setupAccount'
 
 interface Stage1Props {
     onNext: (data: Partial<SetupAccountPayload>) => void;
@@ -77,6 +77,7 @@ export default function Stage1({ onNext }: Stage1Props) {
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="name@ika$h.io"
                         className="bg-[#01030880] text-[#F1F5F9] text-[16px] rounded-xl px-4 py-3 outline-none border border-[#343434] focus:border-[#BCED09]"
+                        
                     />
                 </div>
             </div>

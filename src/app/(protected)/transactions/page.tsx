@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useUser } from "@/features/user/presentation/context/UserContext";
 import { useOrders } from "@/features/order/hooks/useOrders";
 import { useRouter } from "next/navigation";
-import { Aside } from "../components/Aside";
+import { Aside } from "../../components/Aside";
 
 export default function TransactionsPage() {
     const { currentUser } = useUser();

@@ -2,11 +2,11 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import Image from 'next/image'
-import preferencesIcon from '../../../../public/preferences-icon.svg'
-import arrow from '../../../../public/down-arrow.svg'
+import preferencesIcon from '../../../../../public/preferences-icon.svg'
+import arrow from '../../../../../public/down-arrow.svg'
 import { Button } from '../components/Button'
-import { SetupAccountPayload } from '../../../features/user/models/setupAccount'
-import { usePaymentProviders, PaymentProvider } from '../../../features/paymentMethod/hooks/usePaymentProviders'
+import { SetupAccountPayload } from '../../../../features/user/models/setupAccount'
+import { usePaymentProviders, PaymentProvider } from '../../../../features/paymentMethod/hooks/usePaymentProviders'
 
 interface Stage3Props {
     onFinish: (data: Partial<SetupAccountPayload>) => void;
@@ -106,7 +106,7 @@ export default function Stage3({ onFinish }: Stage3Props) {
                         </div>
                     </div>
                     {isProviderListOpen && (
-                        <div className="absolute z-10 w-full mt-1 bg-[#1a1d27] rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                        <div className="absolute z-10 w-full mt-1 bg-[#1a1d27] rounded-xl overflow-y-auto border border-white/10 shadow-2xl max-h-[280px]">
                             {filteredProviders.length > 0 ? (
                                 filteredProviders.map((p) => (
                                     <div

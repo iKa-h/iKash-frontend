@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import preferencesIcon from '../../../../public/preferences-icon.svg'
-import arrow from '../../../../public/down-arrow.svg'
+import preferencesIcon from '../../../../../public/preferences-icon.svg'
+import arrow from '../../../../../public/down-arrow.svg'
 import currencies from '../secondStage/utils/currencies'
 import { Button } from '../components/Button'
-import { SetupAccountPayload } from '../../../features/user/models/setupAccount'
+import { SetupAccountPayload } from '../../../../features/user/models/setupAccount'
 
 interface Stage2Props {
     onNext: (data: Partial<SetupAccountPayload>) => void;
@@ -37,7 +37,7 @@ export default function Stage2({ onNext }: Stage2Props) {
                     />
                     <p className="text-[#F1F5F9] font-bold text-[20px]">2. Preferences</p>
                 </div>
-
+                {/*
                 <div className="bg-[#0103084D] border border-[#343434] rounded-xl px-5 py-4 mb-4 flex items-center justify-between">
                     <div>
                         <p className="text-[#F1F5F9] text-[16px] font-semibold">Enable Notifications</p>
@@ -53,7 +53,7 @@ export default function Stage2({ onNext }: Stage2Props) {
                         />
                     </button>
                 </div>
-
+                */}
                 <div className="relative">
                     <p className="text-[#CBD5E1] text-sm font-semibold mb-2 px-1">Display Currency</p>
                     <div

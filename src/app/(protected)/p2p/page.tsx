@@ -1,8 +1,7 @@
-import { Aside } from "../components/Aside";
-import { Header } from "../components/Header";
+import { Aside } from "../../components/Aside";
+import { Header } from "../../components/Header";
 import { OrderNavbar } from "./components/OrderNavbar";
 import { TradeDashboard } from "./components/TradeDashboard";
-import { TradingVolume } from "./components/TradingVolume";
 import { OrdersSummaryBox } from "./components/OrdersSummaryBox";
 
 export default function p2pPage() {

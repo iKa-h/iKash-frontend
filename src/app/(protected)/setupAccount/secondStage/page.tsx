@@ -2,8 +2,8 @@
 
 import Image from 'next/image'
 
-import preferencesIcon from '../../../../public/preferences-icon.svg'
-import arrow from '../../../../public/down-arrow.svg'
+import preferencesIcon from '../../../../../public/preferences-icon.svg'
+import arrow from '../../../../../public/down-arrow.svg'
 import { useRouter } from "next/navigation";
 import { Header } from "../components/Header";
 import { useState } from 'react';

@@ -9,7 +9,7 @@ import { useEscrows } from "@/features/escrow/hooks/useEscrows";
 import { walletService } from "@/features/wallet/application/wallet.service";
 import { useWalletBalance } from "@/features/wallet/presentation/hooks/useWalletBalance";
 import { useRouter } from "next/navigation";
-import { useNotification } from "../../components/NotificationContext";
+import { useNotification } from "../../../components/NotificationContext";
 
 interface ConfirmOrderModalProps {
     offer: Offer;

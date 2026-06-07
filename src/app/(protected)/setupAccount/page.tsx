@@ -8,9 +8,9 @@ import { ProgressBar } from './components/ProgressBar'
 import Stage1 from './pages/Stage1'
 import Stage2 from './pages/Stage2'
 import Stage3 from './pages/Stage3'
-import { useUsers } from '../../features/user/hooks/useUsers'
-import { useUser } from '../../features/user/presentation/context/UserContext'
-import { SetupAccountPayload } from '../../features/user/models/setupAccount'
+import { useUsers } from '../../../features/user/hooks/useUsers'
+import { useUser } from '../../../features/user/presentation/context/UserContext'
+import { SetupAccountPayload } from '../../../features/user/models/setupAccount'
 
 export default function SetupAccount() {
     const [stage, setStage] = useState<1 | 2 | 3>(1);
