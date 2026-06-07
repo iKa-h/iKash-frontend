@@ -10,7 +10,6 @@ const links = [
     { href: '/dashboard', label: 'Home', icon: LayoutGrid, selected: '/home-selected-icon.svg' },
     { href: '/p2p', label: 'P2P', icon: ArrowLeftRight, selected: '/p2p-selected-icon.svg' },
     { href: '/transactions', label: 'Transactions', icon: Database, selected: '/transaction-selected-icon.svg' },
-    { href: '/wallet', label: 'Wallet', icon: Wallet, selected: '/home-selected-icon.svg' },
 ]
 
 export function Aside() {
@@ -29,7 +28,7 @@ export function Aside() {
     return (
         <aside className="hidden md:flex w-[288px] sticky top-0 h-screen self-start shrink-0 overflow-y-auto bg-[#343434] flex-col p-8">
 
-            <div className="pl-[12px] pt-4">
+            <div className="pl-3 pt-4">
                 <Image
                     src='/iKash.svg'
                     width={80}

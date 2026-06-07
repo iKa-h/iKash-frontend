@@ -1,10 +1,8 @@
 'use client';
 
 import Image from 'next/image'
-
-import arrow from '../../../../public/down-arrow.svg'
 import { FormEvent, useEffect, useState } from 'react';
-import usdcIcon from '../../../../public/usdc.png';
+import usdcIcon from '../../../../../public/usdc.png';
 import { CloseModalProps } from '@/app/utils/closeModalProps';
 import { useOffers } from '@/features/offer/hooks/useOffers';
 import { useUser } from '@/features/user/presentation/context/UserContext';

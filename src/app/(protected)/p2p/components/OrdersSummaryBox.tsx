@@ -68,13 +68,14 @@ export function OrdersSummaryBox() {
 
   // Combine real and mock orders to always show 3 items
   const displayOrders = [...formattedReal];
+  /*
   if (displayOrders.length < 3) {
     MOCK_ORDERS.forEach(mock => {
       if (displayOrders.length < 3 && !displayOrders.some(o => o.orderId === mock.orderId)) {
         displayOrders.push(mock);
       }
     });
-  }
+  }*/
   const finalOrders = displayOrders.slice(0, 3);
 
   const handleItemClick = (orderId: string) => {

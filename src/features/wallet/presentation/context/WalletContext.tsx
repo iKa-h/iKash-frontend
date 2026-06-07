@@ -21,7 +21,7 @@ const initialState: WalletState = {
     publicKey: null,
     provider: null,
     isConnected: false,
-    isLoading: false,
+    isLoading: true,
     error: null,
 };
 
@@ -42,13 +42,17 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         let cancelled = false;
         walletService.restoreSession().then(async (session) => {
-            if (cancelled || !session?.publicKey) return;
+            if (cancelled || !session?.publicKey) {
+                if (!cancelled) setState((s) => ({ ...s, isLoading: false }));
+                return
+            };
 
             setState((s) => ({
                 ...s,
                 publicKey: session.publicKey,
                 provider: session.provider,
                 isConnected: true,
+                isLoading: false,
             }));
 
             try {

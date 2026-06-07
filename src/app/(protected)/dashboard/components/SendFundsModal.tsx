@@ -3,7 +3,7 @@
 import Image from 'next/image'
 
 import { CloseModalProps } from "@/app/utils/closeModalProps";
-import arrow from '../../../../public/down-arrow.svg'
+import arrow from '../../../../../public/down-arrow.svg'
 import { useState, useEffect } from "react";
 import { useWallet, useWalletBalance, type AssetBalance } from "@/features/wallet";
 

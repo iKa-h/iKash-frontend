@@ -1,8 +1,7 @@
-import { Aside } from "../components/Aside";
-import { Header } from "../components/Header";
+import { Aside } from "../../components/Aside";
+import { Header } from "../../components/Header";
 import { OrderNavbar } from "./components/OrderNavbar";
 import { TradeDashboard } from "./components/TradeDashboard";
-import { TradingVolume } from "./components/TradingVolume";
 import { OrdersSummaryBox } from "./components/OrdersSummaryBox";
 
 export default function p2pPage() {
@@ -19,7 +18,6 @@ export default function p2pPage() {
                     
                     <div className="w-px bg-[#1F2937] h-full" />
                     <div className="flex-1 pt-8 px-8 flex flex-col gap-6 shrink-0">
-                        <TradingVolume />
                         <OrdersSummaryBox />
                     </div>
                 </main>

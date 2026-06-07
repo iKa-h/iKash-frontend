@@ -33,13 +33,13 @@ export function TradeDashboard() {
     const [amount, setAmount] = useState("");
     const [isOpen, setIsOpen] = useState(false);
     const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
-    
+
     // If user wants to "Buy", they need to see offers where the merchant is "selling".
     // If user wants to "Sell", they need to see offers where the merchant is "buying".
     const { offers } = useOffers({ type: tab === "Buy" ? "sell" : "buy" });
     // Filter out offers that have been executed/archived server-side
     const visibleOffers = offers.filter(o => !o.executed);
-    
+
     const { getUser, userFound } = useUsers();
     const { currentUser } = useUser();
 
@@ -75,7 +75,7 @@ export function TradeDashboard() {
                         ))}
                     </div>
 
-                    <button 
+                    <button
                         onClick={() => {
                             if (!isVerified) {
                                 alert("KYC verification required to create offers.");
@@ -85,15 +85,15 @@ export function TradeDashboard() {
                         }}
                         disabled={!isVerified}
                         title={!isVerified ? "KYC verification required" : ""}
-                        className={`flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-2xl transition-all duration-200 ${
-                            isVerified ? "bg-[#BCED09] text-black hover:bg-[#d4f53a]" : "bg-gray-700 text-gray-400 cursor-not-allowed"
-                        }`}
+                        className={`flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-2xl transition-all duration-200 ${isVerified ? "bg-[#BCED09] text-black hover:bg-[#d4f53a]" : "bg-gray-700 text-gray-400 cursor-not-allowed"
+                            }`}
                     >
                         <span className="text-sm leading-none">+</span>
                         Create Offer
                     </button>
                 </div>
 
+                {/*
                 <div className="flex items-center justify-between bg-[#161618] border border-[#1F2937] rounded-3xl h-24.75 px-5 gap-4">
                     <div className="flex flex-col gap-1">
                         <label className="text-[10px] text-[#8f8389] uppercase px-1 font-bold">Currency</label>
@@ -130,9 +130,9 @@ export function TradeDashboard() {
                             <span className="text-[#6b7280] flex items-center justify-between pl-14">≡ <span className="text-white ml-2">More Filters</span></span>
                         </button>
                     </div>
-                </div>
+                </div>*/}
             </div>
-            <div className="w-full flex flex-col">
+            <div className="flex flex-col w-285">
                 <div className="grid grid-cols-4 px-4 pb-3 text-[10px] tracking-[1px] text-[#8F8389] uppercase font-bold">
                     <div className="flex items-center p-3">
                         <span>Merchant</span>
@@ -172,7 +172,7 @@ export function TradeDashboard() {
                                 <p className="text-[11px] text-[#6b7280] mt-0.5">Limit: {offer.minAmount} - {offer.maxAmount}</p>
                             </div>
                             <div className="flex">
-                                <button 
+                                <button
                                     disabled={!isVerified}
                                     onClick={() => {
                                         if (!isVerified) {
@@ -182,9 +182,8 @@ export function TradeDashboard() {
                                         setSelectedOffer(offer);
                                     }}
                                     title={!isVerified ? "KYC verification required" : ""}
-                                    className={`text-sm font-bold px-6 py-2.5 rounded-lg transition-all duration-200 ${
-                                        isVerified ? "bg-[#bced09] hover:bg-[#d4f53a] text-black hover:scale-105 active:scale-95" : "bg-gray-700 text-gray-400 cursor-not-allowed"
-                                    }`}
+                                    className={`text-sm font-bold px-6 py-2.5 rounded-lg transition-all duration-200 ${isVerified ? "bg-[#bced09] hover:bg-[#d4f53a] text-black hover:scale-105 active:scale-95" : "bg-gray-700 text-gray-400 cursor-not-allowed"
+                                        }`}
                                 >
                                     {tab === "Buy" ? "BUY" : "SELL"}
                                 </button>

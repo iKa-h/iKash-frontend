@@ -172,7 +172,7 @@ export function ProfileTab() {
                     </form>
                 </div>
 
-                {/* Notifications Section */}
+                {/* Notifications Section
                 <div className="bg-[#0A0D14] border border-[#1A1F26] rounded-2xl overflow-hidden shadow-md">
                     <div className="p-6 border-b border-[#1A1F26]">
                         <h3 className="text-[#F1F5F9] font-bold text-lg mb-1">
@@ -184,7 +184,6 @@ export function ProfileTab() {
                     </div>
 
                     <div className="p-6 flex flex-col gap-4">
-                        {/* Trade Alerts Toggle */}
                         <div className="bg-[#010308]/50 border border-[#1A1F26] rounded-xl p-4 flex justify-between items-center">
                             <div className="flex items-center gap-4">
                                 <div className="w-10 h-10 rounded-full bg-[#BCED09]/10 flex items-center justify-center shrink-0">
@@ -214,7 +213,6 @@ export function ProfileTab() {
                             </button>
                         </div>
 
-                        {/* Security Updates Toggle */}
                         <div className="bg-[#010308]/50 border border-[#1A1F26] rounded-xl p-4 flex justify-between items-center">
                             <div className="flex items-center gap-4">
                                 <div className="w-10 h-10 rounded-full bg-[#BCED09]/10 flex items-center justify-center shrink-0">
@@ -244,7 +242,7 @@ export function ProfileTab() {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div> */}
             </div>
 
             {/* Right Column: Security Side Info */}
@@ -348,7 +346,7 @@ export function ProfileTab() {
                     )}
                 </div>
 
-                {/* Section - Device Sessions */}
+                {/* Section - Device Sessions 
                 <div className="bg-[#0A0D14] border border-[#1A1F26] rounded-2xl overflow-hidden shadow-md">
                     <div className="p-6 border-b border-[#1A1F26] flex justify-between items-center">
                         <h3 className="text-[#F1F5F9] font-bold text-lg">
@@ -364,7 +362,7 @@ export function ProfileTab() {
                     </div>
 
                     <div className="flex flex-col">
-                        {/* Session 1 */}
+                        
                         <div className="p-4 flex items-center justify-between border-b border-[#1A1F26] hover:bg-[#161618]/50 transition-colors">
                             <div className="flex items-center gap-4">
                                 <div className="w-10 h-10 rounded-full bg-[#010308] border border-[#1A1F26] flex items-center justify-center text-[#F1F5F9] shrink-0">
@@ -381,7 +379,6 @@ export function ProfileTab() {
                             </div>
                         </div>
 
-                        {/* Session 2 */}
                         <div className="p-4 flex items-center justify-between hover:bg-[#161618]/50 transition-colors">
                             <div className="flex items-center gap-4">
                                 <div className="w-10 h-10 rounded-full bg-[#010308] border border-[#1A1F26] flex items-center justify-center text-[#F1F5F9] shrink-0">
@@ -416,7 +413,7 @@ export function ProfileTab() {
                             View Login History
                         </button>
                     </div>
-                </div>
+                </div> */}
             </div>
         </div>
     );

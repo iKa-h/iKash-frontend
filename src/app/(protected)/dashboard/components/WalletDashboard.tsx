@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useWallet } from "@/features/wallet";
 import { useWalletBalance } from "@/features/wallet/presentation/hooks/useWalletBalance";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { SendFundsModal } from "./SendFundsModal";
 import { ReceiveFundsModal } from "./ReceiveFundsModal";
@@ -15,11 +14,8 @@ export function WalletDashboard() {
     const [isSendModalOpen, setIsModalOpen] = useState(false);
     const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
 
-    // Esto es de prueba, hay que quitarlo
-    const nav = useRouter();
-
     return (
-        <div className="w-full max-w-[1136px] min-h-[calc(100vh-100px)] flex flex-col pt-12 pr-8 pb-12 border-r border-[#1F2937]">
+        <div className="w-full max-w-284 min-h-[calc(100vh-100px)] flex flex-col pt-12 pr-8 pb-12 border-r border-[#1F2937]">
             <div
                 className="relative rounded-2xl overflow-hidden p-8 w-full mb-8 shadow-lg"
                 style={{
@@ -50,6 +46,7 @@ export function WalletDashboard() {
                         {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
                     </div>
 
+                    {/*
                     <div className="flex gap-3">
                         <button 
                             className="flex items-center gap-2 bg-[#bced09] hover:bg-[#d4f53a] text-black text-xs font-bold 
@@ -70,15 +67,13 @@ export function WalletDashboard() {
                             </svg>
                             RECEIVE
                         </button>
-                    </div>
+                    </div> 
+                    */}
                 </div>
             </div>
             <div className="w-full flex flex-col mb-8">
                 <div className="flex justify-between items-center mb-4 px-1">
                     <span className="text-white font-bold text-base tracking-wide">Assets</span>
-                    <button className="text-[#bced09] text-xs tracking-wider hover:text-[#d4f53a] transition-colors">
-                        View all →
-                    </button>
                 </div>
 
                 <div className="space-y-2">
@@ -125,10 +120,6 @@ export function WalletDashboard() {
 
             {isSendModalOpen && <SendFundsModal onClose={() => setIsModalOpen(false)} />}
             {isReceiveModalOpen && <ReceiveFundsModal onClose={() => setIsReceiveModalOpen(false)} /> }
-
-            <div className="pt-12">
-                <button onClick={() => nav.push('/test')} className="text-gray-500 hover:text-gray-300 text-xs transition-colors">Test</button>
-            </div>
         </div>
     );
 }
