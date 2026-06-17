@@ -54,21 +54,21 @@ export function TradeDashboard() {
     }, [offers]);
 
     return (
-        <div className="w-full flex flex-col pt-8 pb-12 ">
+        <div className="w-full flex flex-col pt-8 pb-12 px-1">
             <KycBanner />
 
-            <div className="w-full mb-8">
+            <div className="w-full mb-8 px-2">
                 <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
-                    <div className="flex bg-[#1a1a1a] rounded-lg p-1 w-full md:w-auto">
+                    <div className="flex bg-[#1a1a1a] rounded-xl p-1 w-full md:w-auto">
                         {["Buy", "Sell"].map((t) => (
                             <button
                                 key={t}
                                 onClick={() => setTab(t)}
-                                className={`flex-1 md:flex-none px-4 md:px-6 py-2 rounded-lg text-sm font-bold transition-all duration-200
-                                    ${tab === t
-                                        ? "bg-[#343434] text-[#BCED09]"
-                                        : "text-[#6b7280] hover:text-white"
-                                    }`}
+                                className={`flex-1 md:flex-none px-6 py-3 rounded-xl text-base font-bold transition-all duration-200
+                                ${tab === t
+                                    ? "bg-[#343434] text-[#BCED09]"
+                                    : "text-[#6b7280] hover:text-white"
+                                }`}
                             >
                                 {t}
                             </button>
@@ -85,93 +85,71 @@ export function TradeDashboard() {
                         }}
                         disabled={!isVerified}
                         title={!isVerified ? "KYC verification required" : ""}
-                        className={`flex items-center justify-center gap-2 text-sm font-bold px-4 py-2 rounded-2xl transition-all duration-200 w-full md:w-auto ${isVerified ? "bg-[#BCED09] text-black hover:bg-[#d4f53a]" : "bg-gray-700 text-gray-400 cursor-not-allowed"
+                        className={`flex items-center justify-center gap-2 text-base font-bold px-6 py-3 rounded-2xl transition-all duration-200 w-full md:w-auto ${isVerified ? "bg-[#BCED09] text-black hover:bg-[#d4f53a]" : "bg-gray-700 text-gray-400 cursor-not-allowed"
                             }`}
                     >
-                        <span className="text-sm leading-none">+</span>
+                        <span className="text-lg leading-none">+</span>
                         Create Offer
                     </button>
                 </div>
-
-                {/*
-                <div className="flex items-center justify-between bg-[#161618] border border-[#1F2937] rounded-3xl h-24.75 px-5 gap-4">
-                    <div className="flex flex-col gap-1">
-                        <label className="text-[10px] text-[#8f8389] uppercase px-1 font-bold">Currency</label>
-                        <div className="flex items-center justify-between bg-[#343434] rounded-2xl px-4 py-3 w-[263.5px] cursor-pointer hover:border-[#1F2937] transition-colors">
-                            <span className="text-sm text-white">USD</span>
-                            <span className="text-[#6b7280] text-xs">▾</span>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                        <label className="text-[10px] text-[#8f8389] uppercase px-1 font-bold">Payment Method</label>
-                        <div className="flex items-center justify-between bg-[#343434] rounded-2xl px-4 py-3 w-[263.5px] cursor-pointer hover:border-[#1F2937] transition-colors">
-                            <span className="text-sm text-white">All Methods</span>
-                            <span className="text-[#6b7280] text-xs">▾</span>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                        <label className="text-[10px] text-[#8f8389] uppercase px-1 font-bold">Amount</label>
-                        <div className="flex items-center justify-between bg-[#343434] rounded-2xl px-4 py-3 w-[263.5px] cursor-pointer hover:border-[#1F2937] transition-colors">
-                            <input
-                                type="number"
-                                placeholder="Enter amount"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
-                                className="bg-transparent text-sm text-white placeholder-[#6B7280] outline-none w-full font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            />
-                            <span className="text-[#6b7280] text-xs ml-2">USD</span>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1 mt-4">
-                        <button className="flex items-center bg-[#343434] rounded-2xl px-4 py-3 w-[263.5px] cursor-pointer hover:border-[#1F2937] transition-colors">
-                            <span className="text-[#6b7280] flex items-center justify-between pl-14">≡ <span className="text-white ml-2">More Filters</span></span>
-                        </button>
-                    </div>
-                </div>*/}
             </div>
-            <div className="flex flex-col w-full">
-                <div className="hidden md:grid grid-cols-4 px-4 pb-3 text-[10px] tracking-[1px] text-[#8F8389] uppercase font-bold">
-                    <div className="flex items-center p-3">
-                        <span>Merchant</span>
-                    </div>
-                    <div className="flex items-center p-3">
-                        <span>Price</span>
-                    </div>
-                    <div className="flex items-center p-3">
-                        <span>Limits / Available</span>
-                    </div>
-                    <div className="flex items-center p-3">
-                        <span className="text-right">Action</span>
-                    </div>
-                </div>
-
-                <div className="space-y-3">
+            <div className="flex flex-col w-full px-2">
+                <div className="space-y-4">
                     {visibleOffers.map((offer) => (
                         <div
                             key={offer.offerId}
-                            className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-[#161618] border border-[#1F2937] rounded-3xl px-4 py-5 hover:border-[#2a2a2a] hover:bg-[#181818] transition-all duration-200"
+                            className="bg-[#161618] border border-[#1F2937] rounded-2xl p-5 hover:border-[#2a2a2a] hover:bg-[#181818] transition-all duration-200"
                         >
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-[#343434] flex items-center justify-center text-[#6b7280] text-[20px]">
-                                    👤
+                            {/* Merchant Header */}
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-14 h-14 rounded-full bg-[#343434] flex items-center justify-center text-[#6b7280] text-[24px]">
+                                        👤
+                                    </div>
+                                    <div>
+                                        <p className="text-white font-bold text-lg">{userFound[offer.creatorId]?.alias}</p>
+                                        <p className="text-[#BCED09] text-xs font-medium">1,420 ORDERS • 98.5%</p>
+                                    </div>
+                                </div>
+                                <div className="text-[#BCED09]">
+                                    ✓
+                                </div>
+                            </div>
+
+                            {/* Middle Section */}
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <p className="text-[#8F8389] text-xs uppercase mb-1">Available</p>
+                                    <p className="text-white font-semibold text-base">
+                                        <MerchantBalance publicKey={userFound[offer.creatorId]?.publicKey} assetCode={offer.assetCode} /> {offer.assetCode}
+                                    </p>
                                 </div>
                                 <div>
-                                    <p className="text-white font-semibold text-sm">{userFound[offer.creatorId]?.alias}</p>
+                                    <p className="text-[#8F8389] text-xs uppercase mb-1 text-right">Limits</p>
+                                    <p className="text-white font-semibold text-base text-right">
+                                        {offer.minAmount} - {offer.maxAmount}
+                                    </p>
                                 </div>
                             </div>
-                            <div>
-                                <span className="text-white font-bold text-lg tabular-nums">{offer.price}</span>
-                                <span className="text-[#6b7280] text-xs ml-1">USD</span>
-                                <p className="text-[10px] text-[#4b5563] mt-0.5 tracking-wide">1 {offer.assetCode || "BTC"} MARKET PRICE</p>
+
+                            {/* Payment Methods */}
+                            <div className="mb-4">
+                                <p className="text-[#8F8389] text-xs uppercase mb-2">Payment Methods</p>
+                                <div className="flex flex-wrap gap-3">
+                                    <span className="text-white font-semibold text-sm">ZELLE</span>
+                                    <span className="text-white font-semibold text-sm">WIRE</span>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-sm text-white">Available: <span className="font-semibold"><MerchantBalance publicKey={userFound[offer.creatorId]?.publicKey} assetCode={offer.assetCode} /></span></p>
-                                <p className="text-[11px] text-[#6b7280] mt-0.5">Limit: {offer.minAmount} - {offer.maxAmount}</p>
-                            </div>
-                            <div className="flex md:justify-end">
+
+                            {/* Price & Action */}
+                            <div className="flex items-end justify-between">
+                                <div>
+                                    <p className="text-[#8F8389] text-xs uppercase mb-1">Unit Price</p>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-[#BCED09] font-bold text-3xl">{offer.price}</span>
+                                        <span className="text-[#8F8389] text-sm">USD</span>
+                                    </div>
+                                </div>
                                 <button
                                     disabled={!isVerified}
                                     onClick={() => {
@@ -182,7 +160,7 @@ export function TradeDashboard() {
                                         setSelectedOffer(offer);
                                     }}
                                     title={!isVerified ? "KYC verification required" : ""}
-                                    className={`text-sm font-bold px-6 py-2.5 rounded-lg transition-all duration-200 w-full md:w-auto ${isVerified ? "bg-[#bced09] hover:bg-[#d4f53a] text-black hover:scale-105 active:scale-95" : "bg-gray-700 text-gray-400 cursor-not-allowed"
+                                    className={`text-base font-bold px-8 py-3 rounded-xl transition-all duration-200 w-[45%] ${isVerified ? "bg-[#bced09] hover:bg-[#d4f53a] text-black hover:scale-105 active:scale-95" : "bg-gray-700 text-gray-400 cursor-not-allowed"
                                         }`}
                                 >
                                     {tab === "Buy" ? "BUY" : "SELL"}
