@@ -3,18 +3,20 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Menu, Settings, User } from 'lucide-react'
+import { Menu, Settings } from 'lucide-react'
 import { useWallet } from '@/features/wallet'
 import { useUser } from '@/features/user/presentation/context/UserContext'
+import { HeaderUser } from './HeaderUser'
 
 type HeaderProps = {
     description?: string
     title: string
     name?: string
     mobileLabel?: string
+    showUser?: boolean
 }
 
-export function Header({ description, title, name, mobileLabel }: HeaderProps) {
+export function Header({ description, title, name, mobileLabel, showUser = true }: HeaderProps) {
     const router = useRouter()
     const { disconnect } = useWallet()
     const { setCurrentUser, setAccessToken } = useUser()
@@ -29,7 +31,7 @@ export function Header({ description, title, name, mobileLabel }: HeaderProps) {
 
     return (
         <>
-            {/* Desktop header — unchanged */}
+            {/* Desktop header */}
             <div className="hidden md:flex items-center justify-between px-12 py-4 border-b border-[#1F2937] w-full">
                 <div className="uppercase font-bold">
                     <div className="text-[12px] text-[#8F8389]">
@@ -39,9 +41,10 @@ export function Header({ description, title, name, mobileLabel }: HeaderProps) {
                         {name !== undefined ? <h1>{title} {name}</h1> : <h1>{title}</h1>}
                     </div>
                 </div>
+                {showUser && <HeaderUser />}
             </div>
 
-            {/* Mobile header — sticky, solid background, hamburger + avatar + name */}
+            {/* Mobile header — sticky, solid background, hamburger + HeaderUser */}
             <div className="md:hidden sticky top-0 z-50 bg-[#161618] border-b border-[#1F2937] px-5 py-4">
                 {!menuOpen ? (
                     <div className="flex items-center gap-4">
@@ -57,14 +60,11 @@ export function Header({ description, title, name, mobileLabel }: HeaderProps) {
                             {mobileLabel !== undefined && (
                                 <p className="text-[10px] text-[#8F8389] uppercase tracking-wide">{mobileLabel}</p>
                             )}
-                            <div className="flex items-center gap-8 mt-1">
-                                <div className="w-11 h-11 rounded-full bg-[#2a2a2a] flex items-center justify-center shrink-0">
-                                    <User size={16} color="#8F8389" />
+                            {showUser && (
+                                <div className="mt-1">
+                                    <HeaderUser />
                                 </div>
-                                <span className="text-white font-bold text-[15px]">
-                                    {name !== undefined ? name : title}
-                                </span>
-                            </div>
+                            )}
                         </div>
                     </div>
                 ) : (
