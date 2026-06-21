@@ -23,7 +23,11 @@ export const lobstrAdapter = {
     // Firma una transacción XDR con LOBSTR
     async signTransaction(xdr: string): Promise<string> {
         const res: any = await lobstrSignTransaction(xdr);
-        if (res?.error) throw new Error(res.error);
+        if (res?.error) {
+            // Preserve structured error (if object) so isSignatureCancelled can inspect fields;
+            // fall back to string wrapping for plain string errors.
+            throw typeof res.error === "string" ? new Error(res.error) : res.error;
+        }
         return typeof res === "string"
             ? res
             : res.signedTxXdr || res.signedTransaction || res.signedXDR || res;
