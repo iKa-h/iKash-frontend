@@ -31,7 +31,9 @@ export function useWalletTransactions(publicKey: string | null) {
 
         setState({ transactions: [], isLoading: true, error: null });
 
-        fetch(`http://localhost:3000/stellar/transactions/${publicKey}`)
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
+        fetch(`${apiUrl}/stellar/transactions/${publicKey}`)
             .then((res) => {
                 if (!res.ok) throw new Error("Transacciones no encontradas");
                 return res.json();

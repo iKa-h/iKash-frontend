@@ -30,7 +30,8 @@ export function useWalletPay(publicKey: string | null) {
         setState({ isLoading: true, error: null, success: false });
 
         try {
-            const res = await fetch('http://localhost:3000/stellar/pay', {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+            const res = await fetch(`${apiUrl}/stellar/pay`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
