@@ -1,10 +1,13 @@
+import { HeaderUser } from "./HeaderUser";
+
 type HeaderProps = {
     description?: string;
     title: string;
     name?: string;
+    showUser?: boolean;
 }
 
-export function Header({ description, title, name }: HeaderProps) {
+export function Header({ description, title, name, showUser = true }: HeaderProps) {
     return (
         <div className="flex items-center justify-between px-12 py-4 border-b border-[#1F2937] w-full">
             <div className="uppercase font-bold">
@@ -22,6 +25,8 @@ export function Header({ description, title, name }: HeaderProps) {
                     }
                 </div>
             </div>
+
+            {showUser && <HeaderUser />}
         </div>
     );
 }
