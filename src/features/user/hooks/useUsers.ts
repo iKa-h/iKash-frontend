@@ -10,7 +10,8 @@ export function useUsers() {
     const [users, setUsers] = useState<Users[]>([]);
     const [user, setUser] = useState<Users | null>(null);
     const [userFound, setUserFound] = useState<Record<string, Users>>({})
-    const { accessToken, setAccessToken, setCurrentUser } = useUser();
+    const { accessToken, currentUser, setAccessToken, setCurrentUser } = useUser();
+    const mockProfileUploadEnabled = process.env.NEXT_PUBLIC_ENABLE_MOCK_PROFILE_UPLOAD === "true";
 
     useEffect(() => {
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`)
@@ -72,6 +73,37 @@ export function useUsers() {
         }
     }
 
+    const uploadProfilePicture = async (userId: string, file: File): Promise<Users | null> => {
+        try {
+            const formData = new FormData();
+            formData.append("profileImage", file);
+            if (mockProfileUploadEnabled && currentUser) {
+                formData.append("userSnapshot", JSON.stringify(currentUser));
+            }
+
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}/profile-picture`, {
+                method: "PATCH",
+                headers: {
+                    "Authorization": `Bearer ${accessToken}`,
+                },
+                body: formData,
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(errorText || "Upload profile picture error");
+            }
+
+            const data = await res.json();
+            setUser(data);
+            setCurrentUser(data);
+            return data;
+        } catch (error) {
+            console.error("Error uploading profile picture:", error);
+            return null;
+        }
+    }
+
     const getOrCreateByWallet = async (publicKey: string): Promise<Users | null> => {
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/account?publicKey=${publicKey}`)
@@ -120,5 +152,5 @@ export function useUsers() {
         }
     }
 
-    return { users, user, getUser, createUser, updateUser, userFound, getOrCreateByWallet, checkAliasAvailable, setupAccount };
+    return { users, user, getUser, createUser, updateUser, uploadProfilePicture, userFound, getOrCreateByWallet, checkAliasAvailable, setupAccount };
 }

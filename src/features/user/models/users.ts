@@ -13,6 +13,7 @@ export interface Users {
     createdAt: string;
     currentNonce?: string;
     bio?: string;
+    profileImageUrl?: string;
     securityUpdates?: boolean;
     payment_method?: any[];
     paymentMethods?: any[];

@@ -1,18 +1,26 @@
 "use client";
 
 import { useWallet } from "@/features/wallet";
+import { useUser } from "@/features/user/presentation/context/UserContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const { isConnected, isLoading } = useWallet();
+  const { currentUser } = useUser();
   const router = useRouter();
+  const mockProfileUploadEnabled = process.env.NEXT_PUBLIC_ENABLE_MOCK_PROFILE_UPLOAD === "true";
+  const canBypassInDev =
+    process.env.NODE_ENV !== "production" &&
+    mockProfileUploadEnabled &&
+    Boolean(currentUser?.userId);
+  const canAccess = isConnected || canBypassInDev;
 
   useEffect(() => {
-    if (!isLoading && !isConnected) {
+    if (!isLoading && !canAccess) {
       router.replace("/welcome");
     }
-  }, [isConnected, isLoading, router]);
+  }, [canAccess, isLoading, router]);
 
   if (isLoading) {
     return (
@@ -22,7 +30,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     );
   }
 
-  if (!isConnected) return null;
+  if (!canAccess) return null;
 
   return <>{children}</>;
 }
