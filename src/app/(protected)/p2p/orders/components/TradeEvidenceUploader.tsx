@@ -3,8 +3,11 @@
 import { useState, useRef, useEffect } from "react";
 import { useEscrows } from "@/features/escrow/hooks/useEscrows";
 import { useOrders } from "@/features/order/hooks/useOrders";
-import { walletService } from "@/features/wallet/application/wallet.service";
+import { isSignatureCancelled } from "@/features/wallet/application/wallet.service";
+import { useSignatureCancellation } from "@/features/wallet/hooks/useSignatureCancellation";
 import { Info, Upload, FileUp, CircleCheck, Loader2 } from "lucide-react";
+import { SignatureCancelledModal } from "../../components/SignatureCancelledModal";
+import { useNotification } from "../../../../components/NotificationContext";
 
 export interface TradeEvidenceUploaderProps {
     orderId: string;
@@ -30,6 +33,8 @@ export function TradeEvidenceUploader({
     const [isDragging, setIsDragging] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { notify } = useNotification();
+    const sig = useSignatureCancellation();
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -65,24 +70,23 @@ export function TradeEvidenceUploader({
     const handleAction = async () => {
         if (isSubmitting || !buyerAddress || !escrowId) return;
         setIsSubmitting(true);
-
         try {
             if (escrowStatus === "funded") {
                 const res = await markFiatSent(escrowId, {
                     buyerAddress,
                     evidence: uploadedFile ? `File: ${uploadedFile.name}` : "Payment evidence"
                 });
-                const unsignedXdr = res.unsignedFundTransaction || res.unsignedTransaction;
-                if (!unsignedXdr) throw new Error("Confirmation failed: no unsigned XDR returned");
+                const actionXdr = res.unsignedFundTransaction || res.unsignedTransaction;
+                if (!actionXdr) throw new Error("Confirmation failed: no unsigned XDR returned");
                 
-                const signedXdr = await walletService.signTransaction(unsignedXdr);
+                const signedXdr = await sig.sign(actionXdr);
                 await syncEscrow({ escrowId, action: "fiat_sent", signedXdr });
                 
-                alert("Payment confirmed and registered successfully!");
+                notify("success", "Payment confirmed and registered successfully!");
                 onStatusChange();
             }
         } catch (err: any) {
-            console.error(err);
+            if (isSignatureCancelled(err)) return;
             alert(`Error processing action: ${err.message || err}`);
         } finally {
             setIsSubmitting(false);
@@ -93,6 +97,26 @@ export function TradeEvidenceUploader({
         if (confirm("Are you sure you want to cancel this P2P operation?")) {
             alert("Operation cancelled.");
         }
+    };
+
+    const handleSignatureRetry = async () => {
+        if (!escrowId) return;
+        setIsSubmitting(true);
+        try {
+            const signedXdr = await sig.retry();
+            await syncEscrow({ escrowId, action: "fiat_sent", signedXdr });
+            notify("success", "Payment confirmed and registered successfully!");
+            onStatusChange();
+        } catch (err: any) {
+            if (isSignatureCancelled(err)) return;
+            notify("error", `Error: ${err.message || err}`);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleSignatureCancel = () => {
+        sig.cancel();
     };
 
     const renderStatusDescription = () => {
@@ -112,6 +136,7 @@ export function TradeEvidenceUploader({
     };
 
     return (
+        <>
         <div className="bg-[#161618] w-[402.8px] h-[571.5px] rounded-[16px] flex flex-col justify-between p-[12px_16px] gap-6 font-space shrink-0 select-none">
             
             {/* Header Info Banner */}
@@ -244,5 +269,13 @@ export function TradeEvidenceUploader({
                 }
             </div>
         </div>
+
+            {sig.showModal && (
+                <SignatureCancelledModal
+                    onRetry={handleSignatureRetry}
+                    onCancel={handleSignatureCancel}
+                />
+            )}
+        </>
     );
 }

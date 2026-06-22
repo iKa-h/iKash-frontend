@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import { useEscrows } from "@/features/escrow/hooks/useEscrows";
 import { useOrders } from "@/features/order/hooks/useOrders";
-import { walletService } from "@/features/wallet/application/wallet.service";
+import { isSignatureCancelled } from "@/features/wallet/application/wallet.service";
+import { useSignatureCancellation } from "@/features/wallet/hooks/useSignatureCancellation";
 import { Info, CircleCheck, Loader2, Eye } from "lucide-react";
+import { SignatureCancelledModal } from "../../components/SignatureCancelledModal";
+import { useNotification } from "../../../../components/NotificationContext";
 
 export interface EvidencePreviewProps {
     orderId: string;
@@ -31,7 +34,9 @@ export function EvidencePreview({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [timeLeft, setTimeLeft] = useState<string>("00:00");
     const [isExpired, setIsExpired] = useState(false);
-    // Eliminado: unsignedXdr y copied
+    const [pendingAction, setPendingAction] = useState<"fund" | "release" | null>(null);
+    const { notify } = useNotification();
+    const sig = useSignatureCancellation();
 
     useEffect(() => {
         if (!expiresAt) return;
@@ -66,16 +71,18 @@ export function EvidencePreview({
         setIsSubmitting(true);
         try {
             const res = await fundEscrow({ escrowId, signerAddress: sellerAddress, amount });
-            const unsignedXdr = res.unsignedFundTransaction || res.unsignedTransaction;
-            if (!unsignedXdr) throw new Error("Funding failed: no unsigned XDR returned");
-            // Firmar automáticamente usando el walletService interno
-            const signedXdr = await walletService.signTransaction(unsignedXdr);
+            const fundXdr = res.unsignedFundTransaction || res.unsignedTransaction;
+            if (!fundXdr) throw new Error("Funding failed: no unsigned XDR returned");
+            const signedXdr = await sig.sign(fundXdr);
             await syncEscrow({ escrowId, action: "fund", signedXdr });
             await updateOrder({ orderStatus: "locked" }, orderId);
-            alert("Escrow funded successfully on-chain!");
+            notify("success", "Escrow funded successfully on-chain!");
             onStatusChange();
         } catch (err: any) {
-            console.error(err);
+            if (isSignatureCancelled(err)) {
+                setPendingAction("fund");
+                return;
+            }
             alert(`Error: ${err.message || err}`);
         } finally {
             setIsSubmitting(false);
@@ -87,17 +94,20 @@ export function EvidencePreview({
         setIsSubmitting(true);
         try {
             const res = await releaseEscrow({ escrowId, releaseSigner: sellerAddress });
-            const unsignedXdr = res.unsignedFundTransaction || res.unsignedTransaction;
-            if (!unsignedXdr) throw new Error("Release failed: no unsigned XDR returned");
+            const releaseXdr = res.unsignedFundTransaction || res.unsignedTransaction;
+            if (!releaseXdr) throw new Error("Release failed: no unsigned XDR returned");
             
-            const signedXdr = await walletService.signTransaction(unsignedXdr);
+            const signedXdr = await sig.sign(releaseXdr);
             await syncEscrow({ escrowId, action: "release", signedXdr });
             await updateOrder({ orderStatus: "released" }, orderId);
             
-            alert("Crypto released successfully!");
+            notify("success", "Crypto released successfully!");
             onStatusChange();
         } catch (err: any) {
-            console.error(err);
+            if (isSignatureCancelled(err)) {
+                setPendingAction("release");
+                return;
+            }
             alert(`Error releasing crypto: ${err.message || err}`);
         } finally {
             setIsSubmitting(false);
@@ -108,6 +118,38 @@ export function EvidencePreview({
         if (confirm("Are you sure you want to cancel this P2P operation?")) {
             alert("Operation cancelled.");
         }
+    };
+
+    const handleSignatureRetry = async () => {
+        if (!escrowId || !pendingAction) return;
+        setIsSubmitting(true);
+        try {
+            const signedXdr = await sig.retry();
+            if (pendingAction === "fund") {
+                await syncEscrow({ escrowId, action: "fund", signedXdr });
+                await updateOrder({ orderStatus: "locked" }, orderId);
+                notify("success", "Escrow funded successfully on-chain!");
+            } else {
+                await syncEscrow({ escrowId, action: "release", signedXdr });
+                await updateOrder({ orderStatus: "released" }, orderId);
+                notify("success", "Crypto released successfully!");
+            }
+            setPendingAction(null);
+            onStatusChange();
+        } catch (err: any) {
+            if (isSignatureCancelled(err)) {
+                return;
+            }
+            alert(`Error: ${err.message || err}`);
+            setPendingAction(null);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleSignatureCancel = () => {
+        sig.cancel();
+        setPendingAction(null);
     };
 
     const renderStatusDescription = () => {
@@ -131,6 +173,7 @@ export function EvidencePreview({
     const hasEvidence = escrowStatus === "fiat_sent" || escrowStatus === "released";
 
     return (
+        <>
         <div className="bg-[#161618] w-full rounded-xl flex flex-col justify-between p-[12px_16px] gap-6 font-space shrink-0 select-none">
             
             {/* 1. Estilos Locales de Inyección para Animación Shimmer de lado a lado */}
@@ -246,5 +289,13 @@ export function EvidencePreview({
                 )}
             </div>
         </div>
+
+            {sig.showModal && (
+                <SignatureCancelledModal
+                    onRetry={handleSignatureRetry}
+                    onCancel={handleSignatureCancel}
+                />
+            )}
+        </>
     );
 }

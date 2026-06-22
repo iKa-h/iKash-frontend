@@ -6,10 +6,12 @@ import { Users } from "@/features/user/models/users";
 import { useUser } from "@/features/user/presentation/context/UserContext";
 import { useOrders } from "@/features/order/hooks/useOrders";
 import { useEscrows } from "@/features/escrow/hooks/useEscrows";
-import { walletService } from "@/features/wallet/application/wallet.service";
+import { isSignatureCancelled } from "@/features/wallet/application/wallet.service";
+import { useSignatureCancellation } from "@/features/wallet/hooks/useSignatureCancellation";
 import { useWalletBalance } from "@/features/wallet/presentation/hooks/useWalletBalance";
 import { useRouter } from "next/navigation";
 import { useNotification } from "../../../components/NotificationContext";
+import { SignatureCancelledModal } from "./SignatureCancelledModal";
 
 interface ConfirmOrderModalProps {
     offer: Offer;
@@ -30,6 +32,9 @@ export function ConfirmOrderModal({ offer, creator, onClose }: ConfirmOrderModal
     const [stats, setStats] = useState<{ totalOrders: number; completedOrders: number } | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
+    const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+    const [pendingEscrowId, setPendingEscrowId] = useState<string | null>(null);
+    const sig = useSignatureCancellation();
 
     const isBuyOperation = offer.type === "sell"; // Merchant is selling, User is BUYING crypto
     const priceNum = parseFloat(offer.price) || 0;
@@ -205,13 +210,17 @@ export function ConfirmOrderModal({ offer, creator, onClose }: ConfirmOrderModal
 
                 // Sign using connected wallet
                 try {
-                    const signedXdr = await walletService.signTransaction(unsignedXdr);
+                    const signedXdr = await sig.sign(unsignedXdr);
                     await syncEscrow({ escrowId: escrowId, action: "fund", signedXdr });
                     notify("success", "Escrow funded successfully. Redirecting to trade view.");
                     router.push("/p2p/orders/" + orderData.orderId.replace(/-/g, ""));
                     return;
                 } catch (signErr) {
-                    console.error("Signing or sync failed:", signErr);
+                    if (isSignatureCancelled(signErr)) {
+                        setPendingOrderId(orderData.orderId.replace(/-/g, ""));
+                        setPendingEscrowId(escrowId);
+                        return;
+                    }
                     notify("error", "Failed to sign or sync the escrow transaction. Merchant should fund the escrow from trade page.");
                     router.push("/p2p/orders/" + orderData.orderId.replace(/-/g, ""));
                     return;
@@ -228,6 +237,40 @@ export function ConfirmOrderModal({ offer, creator, onClose }: ConfirmOrderModal
             notify("error", msg);
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleSignatureRetry = async () => {
+        if (!pendingEscrowId || !pendingOrderId) {
+            console.warn("Signature retry blocked — pending state incomplete", { pendingEscrowId, pendingOrderId });
+            return;
+        }
+        setIsSubmitting(true);
+        try {
+            const signedXdr = await sig.retry();
+            await syncEscrow({ escrowId: pendingEscrowId, action: "fund", signedXdr });
+            setPendingEscrowId(null);
+            setPendingOrderId(null);
+            notify("success", "Escrow funded successfully. Redirecting to trade view.");
+            router.push("/p2p/orders/" + pendingOrderId);
+        } catch (signErr) {
+            if (isSignatureCancelled(signErr)) return;
+            notify("error", "Failed to sign the transaction.");
+            setPendingEscrowId(null);
+            setPendingOrderId(null);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleSignatureCancel = () => {
+        sig.cancel();
+        const orderIdToNavigate = pendingOrderId;
+        setPendingEscrowId(null);
+        setPendingOrderId(null);
+        if (orderIdToNavigate) {
+            notify("warning", "Escrow not funded. You can fund it from the trade page.");
+            router.push("/p2p/orders/" + orderIdToNavigate);
         }
     };
 
@@ -464,6 +507,13 @@ export function ConfirmOrderModal({ offer, creator, onClose }: ConfirmOrderModal
                     </div>
                 </div>
             </div>
+            )}
+
+            {sig.showModal && (
+                <SignatureCancelledModal
+                    onRetry={handleSignatureRetry}
+                    onCancel={handleSignatureCancel}
+                />
             )}
         </div>
     );

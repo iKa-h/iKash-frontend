@@ -58,8 +58,5 @@ export const freighterAdapter = {
             const msg = typeof res.error === "string" ? res.error : (res.error?.message ?? JSON.stringify(res.error));
             throw new Error(msg);
         }
-        return typeof res === "string"
-            ? res
-            : res.signedTxXdr || res.signedTransaction || res.signedXDR || res;
     }
 };
