@@ -10,11 +10,16 @@ export default function DashboardPage() {
     const displayName = currentUser?.alias || (currentUser?.publicKey ? `${currentUser.publicKey.slice(0, 6)}...` : "");
 
     return (
-        <div className="flex min-h-screen w-full">
+        <div className="flex min-h-screen w-full bg-[#010308]">
             <Aside />
             <div className="flex flex-col flex-1 min-w-0">
-                <Header description="account overview" title="Welcome back," name={displayName} />
-                <main className="flex items-center justify-between pl-12">
+                <Header
+                    description="account overview"
+                    title="Welcome back,"
+                    name={displayName}
+                    mobileLabel="Welcome back"
+                />
+                <main className="flex items-start justify-between md:pl-12">
                     <WalletDashboard />
                 </main>
             </div>

@@ -77,3 +77,30 @@ export const walletService = {
         localStorage.removeItem(PUBLICKEY_KEY);
     },
 };
+
+export function isSignatureCancelled(error: unknown): boolean {
+    if (typeof error === "object" && error !== null) {
+        const err = error as Record<string, unknown>;
+
+        // Primary detection: Freighter returns { code: -4, message: "The user rejected this request." }
+        if (err.code === -4) return true;
+
+        // Fallback: message-based matching for wallets without a reliable numeric code
+        // (e.g. LobSTR, or older SDK versions). This is a known limitation — text matching
+        // is fragile but necessary where no structured signal is available.
+        const msg = err.message;
+        if (typeof msg === "string") {
+            const lower = msg.toLowerCase();
+            if (lower.includes("cancel") || lower.includes("reject") || lower.includes("declined")) {
+                return true;
+            }
+        }
+    }
+
+    if (error instanceof Error) {
+        const msg = error.message.toLowerCase();
+        return msg.includes("cancel") || msg.includes("reject") || msg.includes("declined");
+    }
+
+    return false;
+}

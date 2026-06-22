@@ -1,15 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Bell, ShieldCheck, UserCheck, CheckCircle2, Clock3, Monitor, Smartphone, LogOut } from "lucide-react";
 import { useUser } from "@/features/user/presentation/context/UserContext";
 import { useUsers } from "@/features/user/hooks/useUsers";
+import { useNotification } from "@/app/components/NotificationContext";
 
 export function ProfileTab() {
     const { currentUser } = useUser();
-    const { updateUser } = useUsers();
+    const { updateUser, checkAliasAvailable } = useUsers();
+    const { notify } = useNotification();
 
+    const [username, setUsername] = useState("");
     const [alias, setAlias] = useState("");
+    const [aliasError, setAliasError] = useState("");
     const [email, setEmail] = useState("");
     const [bio, setBio] = useState("");
     const [tradeAlerts, setTradeAlerts] = useState(true);
@@ -19,8 +23,13 @@ export function ProfileTab() {
     const [kycLoading, setKycLoading] = useState(false);
     const [kycError, setKycError] = useState<string | null>(null);
 
+    // Refs for debouncing alias check and preventing race conditions
+    const aliasDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const aliasRequestSeqRef = useRef(0);
+
     useEffect(() => {
         if (currentUser) {
+            setUsername(currentUser.username || "");
             setAlias(currentUser.alias || "");
             setEmail(currentUser.email || "");
             setBio(currentUser.bio || "");
@@ -32,14 +41,27 @@ export function ProfileTab() {
     const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!currentUser) return;
+        
+        if (alias && !/^[a-z0-9.!_]+$/.test(alias)) {
+            setAliasError("Invalid format. Use lowercase, numbers, and ., !, _");
+            return;
+        }
+        if (aliasError) return;
+
         setIsSaving(true);
         setSaveMessage("");
+        
         try {
-            await updateUser(currentUser.userId, {
-                alias,
+            const payload: any = {
+                username,
                 email,
                 bio,
-            });
+            };
+            if (alias) {
+                payload.alias = alias;
+            }
+
+            await updateUser(currentUser.userId, payload);
             setSaveMessage("Profile saved successfully!");
         } catch (err) {
             setSaveMessage("Error saving profile");
@@ -48,6 +70,53 @@ export function ProfileTab() {
             setTimeout(() => setSaveMessage(""), 3000);
         }
     };
+
+    const handleAliasChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setAlias(value);
+        setAliasError("");
+
+        // Cancel any pending debounced check
+        if (aliasDebounceRef.current) {
+            clearTimeout(aliasDebounceRef.current);
+        }
+
+        if (!value) return;
+
+        const isValid = /^[a-z0-9.!_]+$/.test(value);
+        if (!isValid) {
+            setAliasError("Invalid format. Use lowercase, numbers, and ., !, _");
+            return;
+        }
+
+        // Check availability only if value changed from the saved alias
+        if (value !== currentUser?.alias) {
+            // Debounce: wait 500 ms after the user stops typing
+            aliasDebounceRef.current = setTimeout(async () => {
+                // Capture a sequence number so stale responses are discarded
+                aliasRequestSeqRef.current += 1;
+                const seq = aliasRequestSeqRef.current;
+
+                try {
+                    const { available } = await checkAliasAvailable(value);
+
+                    // Ignore if a newer request has already been issued
+                    if (seq !== aliasRequestSeqRef.current) return;
+
+                    if (!available) {
+                        setAliasError("This alias is already taken.");
+                    }
+                } catch (err) {
+                    if (seq !== aliasRequestSeqRef.current) return;
+                    console.error("Failed to check alias", err);
+                    notify(
+                        "error",
+                        "Could not verify alias availability. Please check your connection and try again."
+                    );
+                }
+            }, 500);
+        }
+    }, [currentUser?.alias, checkAliasAvailable, notify]);
 
     const handleToggleTradeAlerts = async () => {
         if (!currentUser) return;
@@ -121,13 +190,33 @@ export function ProfileTab() {
                                 </label>
                                 <input
                                     type="text"
-                                    value={alias}
-                                    onChange={(e) => setAlias(e.target.value)}
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
                                     placeholder="Enter display name"
                                     className="bg-[#010308] border border-[#1A1F26] rounded-xl px-4 py-3 text-[#F1F5F9] focus:border-[#BCED09] outline-none transition-colors w-full"
                                 />
                             </div>
 
+                            <div className="flex flex-col flex-1 gap-2">
+                                <label className="text-[#8F8389] text-sm font-medium">
+                                    Account Alias
+                                </label>
+                                <input
+                                    type="text"
+                                    value={alias}
+                                    onChange={handleAliasChange}
+                                    placeholder="Enter unique alias"
+                                    className={`bg-[#010308] border rounded-xl px-4 py-3 text-[#F1F5F9] focus:outline-none transition-colors w-full ${
+                                        aliasError ? 'border-red-500 focus:border-red-500' : 'border-[#1A1F26] focus:border-[#BCED09]'
+                                    }`}
+                                />
+                                {aliasError && (
+                                    <span className="text-red-500 text-xs mt-1">{aliasError}</span>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col md:flex-row gap-6">
                             <div className="flex flex-col flex-1 gap-2">
                                 <label className="text-[#8F8389] text-sm font-medium">
                                     Email Address
@@ -163,7 +252,7 @@ export function ProfileTab() {
                             )}
                             <button
                                 type="submit"
-                                disabled={isSaving}
+                                disabled={isSaving || !!aliasError}
                                 className="bg-[#BCED09] hover:bg-[#d4f53a] text-[#010308] font-bold text-sm px-6 py-3 rounded-xl transition-all duration-200 cursor-pointer disabled:opacity-50"
                             >
                                 {isSaving ? "Saving..." : "Save Changes"}

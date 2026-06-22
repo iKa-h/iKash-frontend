@@ -156,14 +156,14 @@ export default function OrdersPage() {
   return (
     <div className="flex min-h-screen w-full bg-[#010308] text-white font-space">
       <Aside />
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className="flex flex-col flex-1 min-w-0 pb-20 md:pb-0">
         <Header description="trading floor" title="p2p marketplace" />
         <OrderNavbar />
 
-        <main className="flex-1 px-16 pb-12 pt-0 w-full flex gap-8 items-start">
+        <main className="flex-1 px-4 md:px-16 pb-12 pt-0 w-full flex flex-col lg:flex-row gap-8 items-start">
           
           {/* SECCIÓN FILTROS (Columna Izquierda) */}
-          <div className="w-[378.88px] flex flex-col gap-6 shrink-0 pt-12">
+          <div className="w-full lg:w-[378.88px] flex flex-col gap-6 shrink-0 pt-4 lg:pt-12">
             <h2 className="text-[20px] font-black tracking-[-0.6px] uppercase text-white pl-1">
               Filters
             </h2>
@@ -233,10 +233,10 @@ export default function OrdersPage() {
           </div>
 
           {/* SECCIÓN TABLA DE ORDENES (Columna Derecha) */}
-          <div className="flex-1 bg-[#161618] border border-[#1F2937] rounded-[24px] overflow-hidden mt-12">
+          <div className="w-full flex-1 bg-[#161618] border border-[#1F2937] rounded-[24px] overflow-hidden mt-4 lg:mt-12">
             
             {/* Headers de la Tabla */}
-            <div className="grid grid-cols-[1.5fr_1.2fr_1fr_1.2fr_1fr_40px] bg-[#0E0E13] p-4 border-b border-[rgba(69,73,50,0.1)] text-[10px] text-[#64748B] font-bold tracking-[1px] uppercase select-none">
+            <div className="hidden md:grid grid-cols-[1.5fr_1.2fr_1fr_1.2fr_1fr_40px] bg-[#0E0E13] p-4 border-b border-[rgba(69,73,50,0.1)] text-[10px] text-[#64748B] font-bold tracking-[1px] uppercase select-none">
               <div>Asset & Type</div>
               <div>Counterparty</div>
               <div>Date</div>
@@ -257,7 +257,7 @@ export default function OrdersPage() {
                   <div
                     key={o.orderId}
                     onClick={() => handleRowClick(o.orderId)}
-                    className="grid grid-cols-[1.5fr_1.2fr_1fr_1.2fr_1fr_40px] p-6 border-b border-[rgba(22,22,24,0.05)] items-center hover:bg-[#1C1C1F] transition-colors cursor-pointer select-none"
+                    className="grid grid-cols-1 md:grid-cols-[1.5fr_1.2fr_1fr_1.2fr_1fr_40px] gap-4 p-6 border-b border-[rgba(22,22,24,0.05)] items-center hover:bg-[#1C1C1F] transition-colors cursor-pointer select-none"
                   >
                     {/* ASSET & TYPE */}
                     <div className="flex items-center gap-4">
@@ -327,7 +327,7 @@ export default function OrdersPage() {
                     </div>
 
                     {/* CHEVRON */}
-                    <div className="flex justify-end text-gray-500">
+                    <div className="flex justify-end text-gray-500 md:flex">
                       <ChevronRight className="w-4 h-4" />
                     </div>
 

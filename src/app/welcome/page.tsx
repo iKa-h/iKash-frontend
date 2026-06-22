@@ -581,10 +581,11 @@ function ConnectWalletModal({
         throw new Error("No public key found after connection.");
       }
 
-      const horizonRes = await fetch(
-        `https://horizon-testnet.stellar.org/accounts/${savedKey}`,
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      const accountRes = await fetch(
+        `${apiUrl}/stellar/balances/${savedKey}`,
       );
-      if (!horizonRes.ok) {
+      if (!accountRes.ok) {
         throw new Error(
           "Account not funded or active on Testnet. Please fund your account via Friendbot before connecting.",
         );

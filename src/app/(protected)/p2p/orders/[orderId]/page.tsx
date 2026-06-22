@@ -225,18 +225,17 @@ export default function TradePage({ params }: PageProps) {
     const isCompleted = order.escrow?.escrowStatus === 'released';
 
     return (
-        <div className="flex h-screen w-full overflow-hidden bg-[#010308]">
+        <div className="flex min-h-screen w-full overflow-hidden bg-[#010308] pb-20 md:pb-0">
             <Aside />
             <div className="flex flex-col flex-1 min-w-0 h-full overflow-hidden">
                 <Header description="trading floor" title="p2p marketplace" />
-                
-                <main className="flex flex-row items-start w-full h-[calc(100vh-96px)] overflow-hidden bg-[#010308] min-h-0 select-none">
+                <main className="flex flex-col md:flex-row items-start w-full h-[calc(100vh-96px)] overflow-hidden bg-[#010308] min-h-0 select-none">
                     
                     {/* COLUMNA IZQUIERDA: Panel de Transacción */}
-                    <div className="w-[1172px] h-full flex flex-col border-r border-[rgba(69,73,50,0.1)] bg-[#010308] shrink-0 min-h-0">
+                    <div className="w-full md:w-[1172px] h-full flex flex-col border-r border-[rgba(69,73,50,0.1)] bg-[#010308] shrink-0 min-h-0">
                         
                         {/* Subheader superior de navegación */}
-                        <div className="h-[64px] border-b border-[rgba(69,73,50,0.1)] bg-[rgba(19,19,24,0.6)] backdrop-blur-md px-[60px] flex items-center justify-between shrink-0">
+                        <div className="h-[64px] border-b border-[rgba(69,73,50,0.1)] bg-[rgba(19,19,24,0.6)] backdrop-blur-md px-4 md:px-[60px] flex items-center justify-between shrink-0">
                             <Link 
                                 href="/p2p/orders"
                                 className="text-[#9CA3AF] hover:text-white flex items-center gap-2 text-[14px] font-bold uppercase tracking-[-0.35px] transition-colors cursor-pointer font-space"
@@ -253,18 +252,18 @@ export default function TradePage({ params }: PageProps) {
                                     </>
                                 )}
                             </div>
-                            <h2 className="text-white font-black text-[20px] leading-7 uppercase tracking-normal font-space">
+                            <h2 className="text-white font-black text-[20px] leading-7 uppercase tracking-normal font-space hidden md:block">
                                 ORDER DETAILS
                             </h2>
                         </div>
 
                         {/* Contenedor Principal Escalado por Rol */}
-                        <div className="grow flex flex-col p-[32px_64px_40px_64px] overflow-auto justify-between items-center min-h-0 w-full">
+                        <div className="grow flex flex-col p-4 md:p-[32px_64px_40px_64px] overflow-auto justify-between items-center min-h-0 w-full">
                             
                             {isBuyer ? (
                                 <div className="flex flex-col items-center justify-center h-full w-full">
-                                    <div className="flex flex-row items-start gap-[24px] shrink-0 min-h-0 w-[1043px] h-[571.5px]">
-                                        <div className="w-[616.2px] h-full shrink-0">
+                                    <div className="flex flex-col md:flex-row items-start gap-4 shrink-0 min-h-0 w-full">
+                                        <div className="w-full md:w-[616.2px] h-full shrink-0">
                                             <TradeDetails 
                                                 role={role}
                                                 amount={amountVal}
@@ -280,7 +279,7 @@ export default function TradePage({ params }: PageProps) {
                                                 counterpartyKyc={counterpartyUser?.kycStatus === "approved"}
                                             />
                                         </div>
-                                        <div className="w-[402.8px] h-full shrink-0">
+                                        <div className="w-full md:w-[402.8px] h-full shrink-0">
                                             <TradeEvidenceUploader 
                                                 orderId={order.orderId}
                                                 escrowId={escrowId}
@@ -296,7 +295,7 @@ export default function TradePage({ params }: PageProps) {
                                 <div className="flex flex-col gap-6 w-full h-full items-center justify-center">
                                     
                                     {!isCompleted && (
-                                        <div className="w-full bg-[rgba(26,27,33,0.7)] border border-[rgba(218,255,0,0.15)] rounded-[12px] p-[18px_28px] flex items-center justify-between shrink-0">
+                                        <div className="w-full bg-[rgba(26,27,33,0.7)] border border-[rgba(218,255,0,0.15)] rounded-[12px] p-4 md:p-[18px_28px] flex flex-col md:flex-row items-center justify-between shrink-0 gap-2">
                                             <div className="flex flex-col gap-1">
                                                 <div className="flex items-center gap-2">
                                                     <span className="w-2 h-2 rounded-full bg-[#DAFF00] shadow-[0_0_6px_#DAFF00]" />
@@ -319,7 +318,7 @@ export default function TradePage({ params }: PageProps) {
                                         </div>
                                     )}
 
-                                    <div className="grid grid-cols-2 gap-6 w-full">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
                                         <TradeDetails 
                                             role={role}
                                             amount={amountVal}
@@ -371,7 +370,7 @@ export default function TradePage({ params }: PageProps) {
                     </div>
 
                     {/* COLUMNA DERECHA: Componente de Chat global */}
-                    <div className="w-[460px] h-full bg-[#1B1B21] flex flex-col shrink-0 min-h-0">
+                    <div className="w-full md:w-[460px] h-full bg-[#1B1B21] flex flex-col shrink-0 min-h-0">
                         <Chat 
                             orderId={order.orderId} 
                             chatName={counterpartyUser?.alias || (isBuyer ? "Seller" : "Buyer")} 

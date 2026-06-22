@@ -15,9 +15,9 @@ export function WalletDashboard() {
     const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
 
     return (
-        <div className="w-full max-w-284 min-h-[calc(100vh-100px)] flex flex-col pt-12 pr-8 pb-12 border-r border-[#1F2937]">
+        <div className="w-full flex flex-col pt-6 px-4 pb-24 md:pt-12 md:pr-8 md:pb-12 md:pl-0 md:border-r md:border-[#1F2937] md:max-w-284">
             <div
-                className="relative rounded-2xl overflow-hidden p-8 w-full mb-8 shadow-lg"
+                className="relative rounded-2xl overflow-hidden p-5 md:p-8 w-full mb-8 shadow-lg"
                 style={{
                     background: "linear-gradient(135deg, #1a1a1a 0%, #1f2a1a 60%, #2a3a1a 100%)",
                     boxShadow: "0 0 60px rgba(188,237,9,0.08)",
@@ -38,39 +38,16 @@ export function WalletDashboard() {
                 <div className="flex items-end justify-between">
                     <div>
                         <div className="flex items-baseline gap-3">
-                            <span className="text-[72px] font-bold text-white tracking-tight">
+                            <span className="text-[40px] md:text-[72px] font-bold text-white tracking-tight">
                                 {isLoading ? "..." : error ? "-" : (balance || "0.00")}
                             </span>
-                            <span className="text-[#8F8389] text-[24px] tracking-[-3.6px]">XLM</span>
+                            <span className="text-[#8F8389] text-[18px] md:text-[24px] tracking-[-3.6px]">XLM</span>
                         </div>
                         {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
                     </div>
-
-                    {/*
-                    <div className="flex gap-3">
-                        <button 
-                            className="flex items-center gap-2 bg-[#bced09] hover:bg-[#d4f53a] text-black text-xs font-bold 
-                            px-5 py-3 rounded-xl tracking-wider transition-all duration-200 hover:scale-105 active:scale-95"
-                            onClick={() => setIsModalOpen(true)}
-                        >
-                            <svg viewBox="0 0 14 14" className="w-3.5 h-3.5" fill="none">
-                                <path d="M2 12L12 2M12 2H5M12 2v7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                            SEND
-                        </button>
-                        <button className="flex items-center gap-2 bg-[#2a2a2a] hover:bg-[#333] text-white text-xs font-bold 
-                            px-5 py-3 rounded-xl tracking-wider transition-all duration-200 hover:scale-105 active:scale-95 border border-[#3a3a3a]"
-                            onClick={() => setIsReceiveModalOpen(true)}
-                        >
-                            <svg viewBox="0 0 14 14" className="w-3.5 h-3.5" fill="none">
-                                <path d="M12 2L2 12M2 12H9M2 12V5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                            RECEIVE
-                        </button>
-                    </div> 
-                    */}
                 </div>
             </div>
+
             <div className="w-full flex flex-col mb-8">
                 <div className="flex justify-between items-center mb-4 px-1">
                     <span className="text-white font-bold text-base tracking-wide">Assets</span>
@@ -86,7 +63,7 @@ export function WalletDashboard() {
                             const symbol = asset.asset_type === "native" ? "XLM" : asset.asset_code || "UNKNOWN";
                             const name = asset.asset_type === "native" ? "STELLAR LUMENS" : symbol;
                             const amount = parseFloat(asset.balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 7 });
-                            
+
                             return (
                                 <div
                                     key={`${symbol}-${index}`}
@@ -119,7 +96,7 @@ export function WalletDashboard() {
             </div>
 
             {isSendModalOpen && <SendFundsModal onClose={() => setIsModalOpen(false)} />}
-            {isReceiveModalOpen && <ReceiveFundsModal onClose={() => setIsReceiveModalOpen(false)} /> }
+            {isReceiveModalOpen && <ReceiveFundsModal onClose={() => setIsReceiveModalOpen(false)} />}
         </div>
     );
 }

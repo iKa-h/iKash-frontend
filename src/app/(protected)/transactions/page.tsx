@@ -19,16 +19,16 @@ export default function TransactionsPage() {
     }, [currentUser?.userId]);
 
     return (
-        <div className="flex min-h-screen w-full">
+        <div className="flex min-h-screen w-full bg-[#010308]">
             <Aside />
-            <div className="p-6 max-w-4xl mx-auto">
-                <h1 className="text-2xl font-bold mb-4">Transactions</h1>
+            <div className="p-4 md:p-6 max-w-4xl mx-auto pb-20 md:pb-0">
+                <h1 className="text-2xl font-bold mb-4 text-white">Transactions</h1>
 
-                {loading && <p>Loading orders...</p>}
+                {loading && <p className="text-white">Loading orders...</p>}
 
                 {!loading && orders.length === 0 && (
                     <div className="bg-gray-800 p-4 rounded">
-                        <p>No orders found.</p>
+                        <p className="text-white">No orders found.</p>
                     </div>
                 )}
 
@@ -41,12 +41,12 @@ export default function TransactionsPage() {
                         >
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <div className="text-lg font-semibold">Order {o.orderId}</div>
+                                    <div className="text-lg font-semibold text-white">Order {o.orderId}</div>
                                     <div className="text-sm text-gray-400">Status: {o.orderStatus}</div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-sm">Asset: {o.assetAmount}</div>
-                                    <div className="text-sm">Fiat: {o.fiatAmount}</div>
+                                    <div className="text-sm text-white">Asset: {o.assetAmount}</div>
+                                    <div className="text-sm text-white">Fiat: {o.fiatAmount}</div>
                                 </div>
                             </div>
                             {o.escrow && (

@@ -16,10 +16,10 @@ export default function SettingsPage() {
         <div className="flex min-h-screen w-full bg-[#010308]">
             <Aside />
             <div className="flex flex-col flex-1 min-w-0">
-                <Header title="SETTINGS" showSearch={false} showUser={false} />
+                <Header title="SETTINGS" showUser={false} />
                 
                 {/* Navigation Tabs */}
-                <div className="flex items-center gap-8 px-12 pt-6 bg-[#0A0D14]/30 border-b border-[#1A1F26]">
+                <div className="flex items-center gap-8 px-4 md:px-12 pt-6 bg-[#0A0D14]/30 border-b border-[#1A1F26]">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
@@ -39,17 +39,17 @@ export default function SettingsPage() {
                 <main className="flex-1 overflow-y-auto">
                     {activeTab === "profile" && <ProfileTab />}
                     {activeTab === "wallets" && (
-                        <div className="py-16 px-12 text-[#8F8389]">
+                        <div className="py-16 px-4 md:px-12 text-[#8F8389]">
                             Wallets settings configuration pending MVP integration.
                         </div>
                     )}
                     {activeTab === "payments" && (
-                        <div className="py-16 px-12 text-[#8F8389]">
+                        <div className="py-16 px-4 md:px-12 text-[#8F8389]">
                             Payments settings configuration pending MVP integration.
                         </div>
                     )}
                     {activeTab === "security" && (
-                        <div className="py-16 px-12 text-[#8F8389]">
+                        <div className="py-16 px-4 md:px-12 text-[#8F8389]">
                             Security settings configuration pending MVP integration.
                         </div>
                     )}
