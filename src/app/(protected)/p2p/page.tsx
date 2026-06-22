@@ -1,6 +1,5 @@
 import { Aside } from "../../components/Aside";
 import { Header } from "../../components/Header";
-import { BottomNav } from "../../components/BottomNav";
 import { OrderNavbar } from "./components/OrderNavbar";
 import { TradeDashboard } from "./components/TradeDashboard";
 import { OrdersSummaryBox } from "./components/OrdersSummaryBox";
@@ -26,7 +25,6 @@ export default function p2pPage() {
                     </div>
                 </main>
             </div>
-            <BottomNav />
         </div>
     );
 }

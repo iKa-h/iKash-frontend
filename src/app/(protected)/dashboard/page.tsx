@@ -2,7 +2,6 @@
 
 import { Aside } from "../../components/Aside";
 import { Header } from "../../components/Header";
-import { BottomNav } from "../../components/BottomNav";
 import { WalletDashboard } from "./components/WalletDashboard";
 import { useUser } from "@/features/user/presentation/context/UserContext";
 
@@ -24,7 +23,6 @@ export default function DashboardPage() {
                     <WalletDashboard />
                 </main>
             </div>
-            <BottomNav />
         </div>
     );
 }

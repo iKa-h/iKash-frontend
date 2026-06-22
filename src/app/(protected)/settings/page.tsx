@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Aside } from "../../components/Aside";
 import { Header } from "../../components/Header";
-import { BottomNav } from "../../components/BottomNav";
 import { ProfileTab } from "./components/ProfileTab";
 
 const tabs = [
@@ -56,7 +55,6 @@ export default function SettingsPage() {
                     )}
                 </main>
             </div>
-            <BottomNav />
         </div>
     );
 }

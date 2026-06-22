@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Aside } from "@/app/components/Aside";
 import { Header } from "@/app/components/Header";
-import { BottomNav } from "@/app/components/BottomNav";
 import { OrderNavbar } from "../components/OrderNavbar";
 import { useUser } from "@/features/user/presentation/context/UserContext";
 import { useOrders } from "@/features/order/hooks/useOrders";
@@ -341,7 +340,6 @@ export default function OrdersPage() {
 
         </main>
       </div>
-      <BottomNav />
     </div>
   );
 }

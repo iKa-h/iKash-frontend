@@ -3,7 +3,6 @@
 import { use, useEffect, useState, useCallback, useMemo } from "react";
 import { Aside } from "@/app/components/Aside";
 import { Header } from "@/app/components/Header";
-import { BottomNav } from "@/app/components/BottomNav";
 import { TradeDetails } from "../components/TradeDetails";
 import { TradeEvidenceUploader } from "../components/TradeEvidenceUploader";
 import { EvidencePreview } from "../components/EvidencePreview";
@@ -379,7 +378,6 @@ export default function TradePage({ params }: PageProps) {
                     </div>
                 </main>
             </div>
-            <BottomNav />
         </div>
     );
 }
