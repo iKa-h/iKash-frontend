@@ -87,7 +87,7 @@ export function useUsers() {
 
     const checkAliasAvailable = async (alias: string): Promise<{ available: boolean }> => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/available-username?alias=${alias}`)
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/validate-alias?alias=${alias}`)
             if (!res.ok) throw new Error('Check alias error');
             return await res.json();
         } catch (error) {
