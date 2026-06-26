@@ -4,6 +4,7 @@ import { Aside } from "../../components/Aside";
 import { Header } from "../../components/Header";
 import { WalletDashboard } from "./components/WalletDashboard";
 import { useUser } from "@/features/user/presentation/context/UserContext";
+import { Suspense } from "react";
 
 export default function DashboardPage() {
     const { currentUser } = useUser();
@@ -20,7 +21,13 @@ export default function DashboardPage() {
                     mobileLabel="Welcome back"
                 />
                 <main className="flex items-start justify-between md:pl-12">
-                    <WalletDashboard />
+                    <Suspense fallback={
+                        <div className="w-full flex items-center justify-center p-8">
+                            <div className="w-8 h-8 border-4 border-[#BCED09] border-t-transparent rounded-full animate-spin" />
+                        </div>
+                    }>
+                        <WalletDashboard />
+                    </Suspense>
                 </main>
             </div>
         </div>
