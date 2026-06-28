@@ -121,7 +121,7 @@ export function ReceiveFundsModal({ onClose }: CloseModalProps) {
 
                     {/* Alias Field */}
                     <div className="flex flex-col mt-4">
-                        <p className="text-[#C2C7D0] text-[12px] mb-2 uppercase">ika$h alias</p>
+                        <p className="text-[#C2C7D0] text-[12px] mb-2 uppercase">ikash alias</p>
                         <div className="relative">
                             <input
                                 type="text"
@@ -171,4 +171,4 @@ export function ReceiveFundsModal({ onClose }: CloseModalProps) {
             </div>
         </div>
     );
-}
+}
