@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=supersecurepassword
+    command: mongod --auth
+    # Port 27017 is no longer exposed to the host network. 
+    # The API service can still access it internally via the docker network at mongodb:27017.
+    expose:
+      - "27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # Ensure your API service (e.g., txio API) is configured to connect using credentials:
+  # mongodb://admin:supersecurepassword@mongodb:27017/your_db_name?authSource=admin
+
+volumes:
+  mongo_data:
