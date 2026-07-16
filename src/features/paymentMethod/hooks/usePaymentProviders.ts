@@ -1,42 +1,41 @@
-import { useState, useEffect } from 'react';
+'use client'
 
-export interface PaymentProvider {
-    provider_id: string;
-    name: string;
-    type: 'MOBILE' | 'PLATFORM' | 'BANK';
-    country_code: string | null;
-    metadata: {
-        ui_requirements: Array<{
-            db_field: string;
-            label: string;
-            type: string;
-            placeholder?: string;
-            required: boolean;
-        }>;
-    };
-}
+import { useCallback, useEffect, useState } from 'react';
+import { getPaymentProviders } from '../application/paymentProvider.service';
+import { PaymentProvider } from '../types/paymentProvider';
 
-export function usePaymentProviders() {
+export function usePaymentProviders(country?: string) {
     const [providers, setProviders] = useState<PaymentProvider[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [reloadKey, setReloadKey] = useState(0);
+    const retry = useCallback(() => setReloadKey(key => key + 1), []);
 
     useEffect(() => {
-        const fetchProviders = async () => {
-            try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payment-providers`); // I need to create this endpoint too
-                if (!response.ok) throw new Error('Failed to fetch providers');
-                const data = await response.json();
-                setProviders(data);
-            } catch (err: unknown) {
-                setError(err instanceof Error ? err.message : String(err));
-            } finally {
-                setLoading(false);
-            }
-        };
+        const controller = new AbortController();
+        Promise.resolve().then(() => {
+            if (controller.signal.aborted) return [];
+            setLoading(true);
+            setError(null);
+            return getPaymentProviders(country, controller.signal);
+        })
+            .then(result => {
+                if (controller.signal.aborted) return;
+                const expected = country?.toUpperCase();
+                setProviders(result.filter(provider => !expected || !provider.country || provider.country === expected));
+            })
+            .catch((reason: unknown) => {
+                if (reason instanceof DOMException && reason.name === 'AbortError') return;
+                setProviders([]);
+                setError(reason instanceof Error ? reason.message : 'Unable to load payment providers.');
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) setLoading(false);
+            });
+        return () => controller.abort();
+    }, [country, reloadKey]);
 
-        fetchProviders();
-    }, []);
-
-    return { providers, loading, error };
+    return { providers, loading, error, retry };
 }
+
+export type { PaymentProvider } from '../types/paymentProvider';

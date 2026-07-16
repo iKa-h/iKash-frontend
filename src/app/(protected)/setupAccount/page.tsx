@@ -24,15 +24,16 @@ export default function SetupAccount() {
         setStage((prev) => (prev + 1) as 1 | 2 | 3);
     };
 
-    const handleFinish = async (data: Partial<SetupAccountPayload>) => {
+    const handleFinish = async (data: Partial<SetupAccountPayload>): Promise<string | null> => {
         const finalData = { ...formData, ...data };
-        if (currentUser) {
-            const updated = await setupAccount(currentUser.userId, finalData);
-            if (updated) {
-                setCurrentUser(updated);
-                router.push('/dashboard');
-            }
+        if (!currentUser) return 'Your session has expired. Please sign in again.';
+        const updated = await setupAccount(currentUser.userId, finalData);
+        if (updated) {
+            setCurrentUser(updated);
+            router.push('/dashboard');
+            return null;
         }
+        return 'We could not save this payment method. Check the details and try again.';
     };
 
     const handleSkip = async () => {

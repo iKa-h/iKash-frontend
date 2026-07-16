@@ -11,4 +11,5 @@ export interface SetupAccountPayload {
     identificationNumber?: string;
     beneficiaryName?: string;
     description?: string;
+    metadata?: Record<string, string>;
 }
