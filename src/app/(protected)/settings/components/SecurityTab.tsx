@@ -193,7 +193,7 @@ function RecentSessionsList() {
     const sessions = [
         {
             id: "1",
-            date: new Date().toISOString(),
+            date: "2026-07-16T12:00:00.000Z",
             ip: "192.0.2.1",
             device: "Chrome on Windows",
             location: "San Francisco, CA",
@@ -201,7 +201,7 @@ function RecentSessionsList() {
         },
         {
             id: "2",
-            date: new Date(Date.now() - 86400000).toISOString(),
+            date: "2026-07-15T12:00:00.000Z",
             ip: "192.0.2.2",
             device: "Safari on macOS",
             location: "New York, NY",
@@ -209,7 +209,7 @@ function RecentSessionsList() {
         },
         {
             id: "3",
-            date: new Date(Date.now() - 172800000).toISOString(),
+            date: "2026-07-14T12:00:00.000Z",
             ip: "192.0.2.3",
             device: "Firefox on Linux",
             location: "London, UK",
