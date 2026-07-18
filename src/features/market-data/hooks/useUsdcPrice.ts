@@ -4,7 +4,6 @@ import { fetchUsdcPrice } from '../services/market-data.service';
 import type { UsdcPriceState } from '../types/market-data.types';
 
 const REFRESH_MS = 60000;
-const STALE_MS = 120000;
 
 export function useUsdcPrice(): UsdcPriceState {
   const [state, setState] = useState<UsdcPriceState>({ price: null, isLoading: true, error: null, isStale: false, lastUpdated: null });

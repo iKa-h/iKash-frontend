@@ -4,9 +4,9 @@ import { useUsdcPrice } from '@/features/market-data/hooks/useUsdcPrice';
 
 export function MarketSnapshot() {
   const { offers, isLoading: oLoading } = useOffers();
-  const { price, isLoading: pLoading, error, isStale, lastUpdated } = useUsdcPrice();
-  const buys = offers.filter((o: any) => o.type === 'buy').length;
-  const sells = offers.filter((o: any) => o.type === 'sell').length;
+  const { price, isLoading: pLoading, error, isStale } = useUsdcPrice();
+  const buys = offers.filter((o: { type: string }) => o.type === 'buy').length;
+  const sells = offers.filter((o: { type: string }) => o.type === 'sell').length;
 
   return (
     <div className="w-full rounded-2xl bg-[#161618] border border-[#1f1f1f] p-5 md:p-6">
