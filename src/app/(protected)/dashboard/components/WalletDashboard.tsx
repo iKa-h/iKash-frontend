@@ -8,6 +8,7 @@ import { ReceiveFundsModal } from './ReceiveFundsModal';
 import { useSearchParams } from 'next/navigation';
 import { WalletBalanceCard } from './WalletBalanceCard';
 import { WalletAssetList } from './WalletAssetList';
+import { MarketSnapshot } from './MarketSnapshot';
 
 export function WalletDashboard() {
   const { publicKey } = useWallet();
@@ -26,6 +27,10 @@ export function WalletDashboard() {
         <span className="text-white font-bold text-base tracking-wide">Assets</span>
       </div>
       <WalletAssetList balances={balances} isLoading={isLoading} error={error} />
+
+      <div className="mt-6">
+        <MarketSnapshot />
+      </div>
 
       {isSendModalOpen && <SendFundsModal onClose={() => setIsSendModalOpen(false)} />}
       {isReceiveModalOpen && <ReceiveFundsModal onClose={() => setIsReceiveModalOpen(false)} />}
