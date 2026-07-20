@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Offer } from "../models/offer";
 import { CreateOffer } from "../models/createOffer";
 import { UpdateOffer } from "../models/updateOffer";
@@ -10,7 +10,18 @@ export function useOffers(filters?: Record<string, string>) {
     const [isLoading, setIsLoading] = useState(true);
     const { accessToken, logout } = useUser();
 
+    // Tracks the AbortController for the most recent in-flight fetch so that
+    // stale responses from earlier requests cannot overwrite newer results.
+    const abortRef = useRef<AbortController | null>(null);
+
     const fetchOffers = useCallback(async (currentFilters?: Record<string, string>) => {
+        // Cancel any previous in-flight request
+        if (abortRef.current) {
+            abortRef.current.abort();
+        }
+        const controller = new AbortController();
+        abortRef.current = controller;
+
         setIsLoading(true);
         try {
             let url = `${process.env.NEXT_PUBLIC_API_URL}/offers`;
@@ -21,14 +32,19 @@ export function useOffers(filters?: Record<string, string>) {
                     url += `?${queryString}`;
                 }
             }
-            const res = await fetch(url);
+            const res = await fetch(url, { signal: controller.signal });
             if (!res.ok) throw new Error('Offers not found');
             const data = await res.json();
             setOffers(data);
-        } catch (err) {
+        } catch (err: unknown) {
+            // Ignore intentional aborts (stale request cancelled by newer one)
+            if (err instanceof Error && err.name === "AbortError") return;
             console.error(err);
         } finally {
-            setIsLoading(false);
+            // Only clear loading if this controller is still the active one
+            if (abortRef.current === controller) {
+                setIsLoading(false);
+            }
         }
     }, []);
 
