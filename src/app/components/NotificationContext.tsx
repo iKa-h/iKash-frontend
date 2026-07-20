@@ -44,6 +44,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
 
     const duration = options.duration ?? 4000;
+    const id = Math.random().toString(36).substring(2, 9);
 
     setToasts((prev: Toast[]) => {
       // Deduplication: prevent adding if an identical active message exists
@@ -51,7 +52,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         return prev;
       }
 
-      const id = Math.random().toString(36).substring(2, 9);
       const newToast: Toast = { id, type, message, ...options };
 
       const updatedToasts = [...prev, newToast];
@@ -61,15 +61,15 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         updatedToasts.shift();
       }
 
-      // Schedule removal if duration > 0 (e.g. not Infinity)
-      if (duration > 0) {
-        setTimeout(() => {
-          setToasts((currentToasts: Toast[]) => currentToasts.filter((t: Toast) => t.id !== id));
-        }, duration);
-      }
-
       return updatedToasts;
     });
+
+    // Schedule removal if duration > 0 (e.g. not Infinity)
+    if (duration > 0) {
+      setTimeout(() => {
+        setToasts((currentToasts: Toast[]) => currentToasts.filter((t: Toast) => t.id !== id));
+      }, duration);
+    }
   }, []);
 
   const removeToast = useCallback((id: string) => {
