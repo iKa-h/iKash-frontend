@@ -4,7 +4,7 @@ import { NotificationProvider, useNotification } from './NotificationContext';
 import { useEffect } from 'react';
 
 // A test component to trigger notifications
-function TestComponent({ notifyAction }: { notifyAction: (notify: any) => void }) {
+function TestComponent({ notifyAction }: { notifyAction: (notify: ReturnType<typeof useNotification>['notify']) => void }) {
   const { notify } = useNotification();
   
   useEffect(() => {
