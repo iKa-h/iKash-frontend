@@ -969,47 +969,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* --- STATS SECTION (SOLID LIME) --- */}
-      <section className="w-full bg-[#BCED09] py-16 relative overflow-hidden">
-        {/* Decorative lighter glowing circles for authentic ambient depth as shown in the image */}
-        <div className="absolute -left-12 top-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-[#F4FFCA] filter blur-3xl opacity-55 pointer-events-none" />
-        <div className="absolute left-[30%] top-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-[#F4FFCA] filter blur-3xl opacity-45 pointer-events-none" />
-        <div className="absolute left-[65%] top-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-[#F4FFCA] filter blur-3xl opacity-45 pointer-events-none" />
-        <div className="absolute -right-20 top-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-[#F4FFCA] filter blur-3xl opacity-55 pointer-events-none" />
-
-        <div className="max-w-7xl w-full mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-3 gap-12 text-center relative z-10 text-[#010308]">
-          {/* Stat 1 */}
-          <div className="flex flex-col items-center justify-center space-y-2">
-            <span className="text-6xl md:text-7xl font-black tracking-tight">
-              $1.2B+
-            </span>
-            <span className="text-xs font-black tracking-[2.5px] uppercase opacity-90">
-              Total Volume Traded
-            </span>
-          </div>
-
-          {/* Stat 2 */}
-          <div className="flex flex-col items-center justify-center space-y-2 border-y md:border-y-0 md:border-x border-[#010308]/10 py-8 md:py-0">
-            <span className="text-6xl md:text-7xl font-black tracking-tight">
-              450K+
-            </span>
-            <span className="text-xs font-black tracking-[2.5px] uppercase opacity-90">
-              Active Wallets
-            </span>
-          </div>
-
-          {/* Stat 3 */}
-          <div className="flex flex-col items-center justify-center space-y-2">
-            <span className="text-6xl md:text-7xl font-black tracking-tight">
-              A+
-            </span>
-            <span className="text-xs font-black tracking-[2.5px] uppercase opacity-90">
-              Security Audit Rating
-            </span>
-          </div>
-        </div>
-      </section>
-
       {/* --- CTA SECTION (Extracted to Standalone Component) --- */}
       <CallToActionSection handleConnectWallet={handleConnectWallet} />
 
