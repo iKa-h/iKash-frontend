@@ -5,7 +5,7 @@ export interface EscrowOnChain {
     escrowId: string;
     orderId: string;
     contractId?: string | null;
-    escrowStatus: "pending" | "initialized" | "funded" | "fiat_sent" | "released";
+    escrowStatus: "pending" | "initialized" | "funded" | "fiat_sent" | "released" | "disputed" | "resolved";
     amount?: number | string | null;
     buyerAddress?: string | null;
     sellerAddress?: string | null;

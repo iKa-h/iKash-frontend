@@ -1,6 +1,9 @@
 export { WalletProvider } from "./presentation/context/WalletContext";
 export { useWalletContext as useWallet } from "./presentation/context/WalletContext";
-export { ConnectWalletButton } from "./presentation/components/ConnectWalletButton";
+export { ConnectButton } from "./presentation/components/ConnectButton";
 export { useWalletBalance } from "./presentation/hooks/useWalletBalance";
 export type { AssetBalance } from "./presentation/hooks/useWalletBalance";
-export type { WalletState, WalletActions, WalletContext, WalletProvider as WalletProviderType } from "./domain/wallet.types";
+export { useWalletAvailability } from "./presentation/hooks/useWalletAvailability";
+export { walletOptions } from "./config/wallet-options";
+export type { WalletOption } from "./config/wallet-options";
+export type { WalletState, WalletActions, WalletContext, WalletStatus, ConnectedWalletState } from "./domain/wallet.types";

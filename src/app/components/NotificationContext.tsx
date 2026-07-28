@@ -1,43 +1,58 @@
 "use client";
 
-/**
- * src/app/components/NotificationContext.tsx
- *
- * Legacy compatibility shim.
- *
- * This file re-exports the new global notification system so that any
- * existing code importing from this path continues to work without changes.
- *
- * The real implementation lives in:
- *   src/features/notifications/context/NotificationContext.tsx
- */
+import { createContext, useCallback, useContext, useState, ReactNode } from "react";
+import { X, CheckCircle, AlertCircle, Info } from "lucide-react";
 
-export {
-  NotificationProvider,
-  useNotificationContext,
-} from "../../features/notifications/context/NotificationContext";
+type ToastType = "success" | "error" | "warning" | "info";
 
-export { useNotifications } from "../../features/notifications/hooks/useNotifications";
+interface Toast {
+  id: string;
+  type: ToastType;
+  message: string;
+}
 
-// ---------------------------------------------------------------------------
-// Legacy `useNotification` hook
-//
-// The original API was: notify(type, message, duration?)
-// The new API is:       notify({ type, title, message?, duration? })
-//
-// This adapter bridges the two so call-sites that haven't migrated yet still
-// work correctly.
-// ---------------------------------------------------------------------------
-import { useCallback } from "react";
-import { useNotificationContext } from "../../features/notifications/context/NotificationContext";
-import type { NotificationType } from "../../features/notifications/types/notification.types";
+interface NotificationContextType {
+  notify: (type: ToastType, message: string, duration?: number) => void;
+}
 
-/**
- * @deprecated Use `useNotifications` from the features/notifications module
- *             for new code.
- */
-export function useNotification() {
-  const { notify } = useNotificationContext();
+const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+
+export function NotificationProvider({ children }: { children: ReactNode }) {
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const notify = useCallback((type: ToastType, message: string, duration = 4000) => {
+    const id = Math.random().toString(36).substring(2, 9);
+    setToasts(prev => [...prev, { id, type, message }]);
+
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, duration);
+  }, []);
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
+
+  return (
+    <NotificationContext.Provider value={{ notify }}>
+      {children}
+      <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 max-w-sm w-full pointer-events-none">
+        {toasts.map(toast => (
+          <div
+            key={toast.id}
+            className={`flex items-start gap-3 p-4 rounded-xl border bg-[#161618] shadow-2xl transition-all duration-300 transform translate-y-0 animate-in slide-in-from-right pointer-events-auto
+              ${toast.type === "success" ? "border-[#BCED09]/40 text-white" : ""}
+              ${toast.type === "error" ? "border-red-500/40 text-white" : ""}
+              ${toast.type === "warning" ? "border-yellow-500/40 text-white" : ""}
+              ${toast.type === "info" ? "border-blue-500/40 text-white" : ""}
+            `}
+          >
+            {toast.type === "success" && <CheckCircle className="h-5 w-5 text-[#BCED09] shrink-0" />}
+            {toast.type === "error" && <AlertCircle className="h-5 w-5 text-red-500 shrink-0" />}
+            {toast.type === "warning" && <AlertCircle className="h-5 w-5 text-yellow-500 shrink-0" />}
+            {toast.type === "info" && <Info className="h-5 w-5 text-blue-500 shrink-0" />}
+
+            <div className="flex-1 text-xs font-semibold uppercase tracking-wider">{toast.message}</div>
 
   const legacyNotify = useCallback(
     (type: NotificationType, message: string, duration?: number) => {

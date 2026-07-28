@@ -4,17 +4,13 @@ import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
 import Image from 'next/image'
 import { ConnectButton } from "@/features/wallet/presentation/components/ConnectButton";
+import { walletOptions } from "@/features/wallet/config/wallet-options";
 import { usePathname } from "next/navigation";
 
 const navLinks = [
 	{ label: "Home", href: "/" },
 	{ label: "Statistics", href: "/stats" },
 	{ label: "Info", href: "/info" },
-];
-
-const walletOptions = [
-	{ label: "Lobstr", icon: "🦊", description: "Browser extension", connection: "lobstr" },
-	{ label: "Freighter", icon: "🔵", description: "Browser extension", connection: "freighter" }
 ];
 
 export function Navbar({ onConnectClick }: { onConnectClick?: () => void }) {
@@ -80,9 +76,9 @@ export function Navbar({ onConnectClick }: { onConnectClick?: () => void }) {
 							<p className="text-xs text-gray-500 px-4 pt-3 pb-2 uppercase tracking-widest">
 								Choose wallet
 							</p>
-							{walletOptions.map((wallet) => (
-								<div key={wallet.label}>
-									<ConnectButton label={wallet.label} description={wallet.description} connection={wallet.connection} />
+							{walletOptions.filter((wallet) => wallet.enabled).map((wallet) => (
+								<div key={wallet.id}>
+									<ConnectButton label={wallet.name} description={wallet.description} walletId={wallet.id} icon={wallet.icon} />
 								</div>
 							))}
 							<div className="border-t border-white/10 px-4 py-3">

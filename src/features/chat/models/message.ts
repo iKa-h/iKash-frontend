@@ -4,4 +4,7 @@ export interface Message {
     senderId: string;
     content: string;
     timestamp: string;
+    senderAlias?: string;
+    clientMessageId?: string;
+    deliveryStatus?: "sending" | "delivered" | "failed";
 }
