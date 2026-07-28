@@ -212,13 +212,13 @@ export function ConfirmOrderModal({ offer, creator, onClose }: ConfirmOrderModal
             if (!isBuyOperation) {
                 if (!unsignedXdr) {
                     notify("warning", "Order and escrow created. Merchant must fund the escrow from dashboard.");
-                    router.push("/p2p/orders/" + orderData.orderId.replace(/-/g, ""));
+                    router.push("/p2p/orders/" + orderData.orderId);
                     return;
                 }
 
                 if (!escrowId) {
                     notify("error", "Escrow ID missing. Cannot fund escrow.");
-                    router.push("/p2p/orders/" + orderData.orderId.replace(/-/g, ""));
+                    router.push("/p2p/orders/" + orderData.orderId);
                     return;
                 }
 
@@ -227,23 +227,23 @@ export function ConfirmOrderModal({ offer, creator, onClose }: ConfirmOrderModal
                     const signedXdr = await sig.sign(unsignedXdr);
                     await syncEscrow({ escrowId, action: "fund", signedXdr });
                     notify("success", "Escrow funded successfully. Redirecting to trade view.");
-                    router.push("/p2p/orders/" + orderData.orderId.replace(/-/g, ""));
+                    router.push("/p2p/orders/" + orderData.orderId);
                     return;
                 } catch (signErr) {
                     if (isSignatureCancelled(signErr)) {
-                        setPendingOrderId(orderData.orderId.replace(/-/g, ""));
+                        setPendingOrderId(orderData.orderId);
                         setPendingEscrowId(escrowId);
                         return;
                     }
                     notify("error", "Failed to sign or sync the escrow transaction. Merchant should fund the escrow from trade page.");
-                    router.push("/p2p/orders/" + orderData.orderId.replace(/-/g, ""));
+                    router.push("/p2p/orders/" + orderData.orderId);
                     return;
                 }
             }
 
             // If current user is the buyer -> notify and redirect
             notify("success", "Order initiated and escrow contract created. The seller has been notified to fund the escrow.");
-            router.push("/p2p/orders/" + orderData.orderId.replace(/-/g, ""));
+            router.push("/p2p/orders/" + orderData.orderId);
 
         } catch (err: unknown) {
             console.error(err);

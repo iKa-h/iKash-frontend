@@ -3,6 +3,7 @@
 import { Aside } from "../../components/Aside";
 import { Header } from "../../components/Header";
 import { WalletDashboard } from "./components/WalletDashboard";
+import { ActiveOrdersSection } from "@/features/order/components/ActiveOrdersSection";
 import { useUser } from "@/features/user/presentation/context/UserContext";
 import { Suspense } from "react";
 
@@ -28,7 +29,16 @@ export default function DashboardPage() {
                     }>
                         <WalletDashboard />
                     </Suspense>
+                    {/* Active Orders — right panel (desktop) */}
+                    <div className="hidden md:flex flex-col flex-1 min-w-0 pt-12 pr-8 pl-10">
+                        <ActiveOrdersSection />
+                    </div>
                 </main>
+
+                {/* Active Orders — mobile (below wallet) */}
+                <div className="md:hidden px-4 pb-24">
+                    <ActiveOrdersSection />
+                </div>
             </div>
         </div>
     );

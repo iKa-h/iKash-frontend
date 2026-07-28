@@ -9,7 +9,10 @@ import { EvidencePreview } from "../components/EvidencePreview";
 import { Chat } from "../../components/Chat";
 import { useUser } from "@/features/user/presentation/context/UserContext";
 import type { Order } from "@/features/order/models/order";
-import { useOrders } from "@/features/order/hooks/useOrders";
+import { useOrders, ApiError } from "@/features/order/hooks/useOrders";
+import { canCancelOrder } from "@/features/order/utils/canCancelOrder";
+import { CancelOrderModal } from "../components/CancelOrderModal";
+import { useNotification } from "@/app/components/NotificationContext";
 import { ArrowLeft, AlertTriangle, Ban, Loader2 } from "lucide-react";
 import Link from "next/link";
 
@@ -25,11 +28,14 @@ function restoreUuidDashes(uuid: string): string {
 export default function TradePage({ params }: PageProps) {
     const { orderId } = use(params);
     const { currentUser } = useUser();
-    const { getOrder } = useOrders();
+    const { getOrder, cancelOrder } = useOrders();
+    const { notify } = useNotification();
 
     const [order, setOrder] = useState<Order | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState("");
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
 
     // Create a demo order object when path is /demo or starting with mock-
     const demoOrder = useMemo((): Order | null => {
@@ -136,6 +142,35 @@ export default function TradePage({ params }: PageProps) {
         }
     }, [currentUser, fetchOrder]);
 
+    const handleCancelOrder = useCallback(async () => {
+        if (!order || orderId === "demo" || orderId.startsWith("mock-")) {
+            setShowCancelModal(false);
+            return;
+        }
+
+        setIsCancelling(true);
+        try {
+            await cancelOrder(order.orderId);
+            setShowCancelModal(false);
+            notify("success", "Order cancelled successfully.");
+            await fetchOrder();
+        } catch (err: unknown) {
+            setShowCancelModal(false);
+            // Backend rejected because the order's state changed underneath
+            // us (e.g. payment was marked while the modal was open) — refresh
+            // to show the latest state instead of leaving a stale UI.
+            if (err instanceof ApiError && err.status === 409) {
+                notify("warning", "This order can no longer be cancelled because its status has changed.");
+                await fetchOrder();
+                return;
+            }
+            const msg = err instanceof Error ? err.message : "Failed to cancel the order. Please try again.";
+            notify("error", msg);
+        } finally {
+            setIsCancelling(false);
+        }
+    }, [order, orderId, cancelOrder, notify, fetchOrder]);
+
     if (!currentUser) {
         return (
             <div className="flex h-screen w-full overflow-hidden bg-[#010308]">
@@ -236,6 +271,7 @@ export default function TradePage({ params }: PageProps) {
 
     const counterpartyUser = isBuyer ? order.seller : order.buyer;
     const isCompleted = order.escrow?.escrowStatus === 'released';
+    const canCancel = canCancelOrder(order, currentUser.userId);
 
     return (
         <div className="flex min-h-screen w-full overflow-hidden bg-[#010308] pb-20 md:pb-0">
@@ -265,9 +301,11 @@ export default function TradePage({ params }: PageProps) {
                                     </>
                                 )}
                             </div>
-                            <h2 className="text-white font-black text-[20px] leading-7 uppercase tracking-normal font-space hidden md:block">
-                                ORDER DETAILS
-                            </h2>
+                            <div className="flex items-center gap-4">
+                                <h2 className="text-white font-black text-[20px] leading-7 uppercase tracking-normal font-space hidden md:block">
+                                    ORDER DETAILS
+                                </h2>
+                            </div>
                         </div>
 
                         {/* Contenedor Principal Escalado por Rol */}
@@ -302,6 +340,9 @@ export default function TradePage({ params }: PageProps) {
                                                 amount={amountVal}
                                                 evidenceUrl={order.escrow?.evidenceUrl}
                                                 onStatusChange={fetchOrder}
+                                                canCancel={canCancel}
+                                                isCancelling={isCancelling}
+                                                onCancelOrder={() => setShowCancelModal(true)}
                                             />
                                         </div>
                                     </div>
@@ -357,6 +398,9 @@ export default function TradePage({ params }: PageProps) {
                                             expiresAt={order.expiresAt as string | undefined}
                                             evidenceUrl={order.escrow?.evidenceUrl}
                                             onStatusChange={fetchOrder}
+                                            canCancel={canCancel}
+                                            isCancelling={isCancelling}
+                                            onCancelOrder={() => setShowCancelModal(true)}
                                         />
                                     </div>
 
@@ -395,6 +439,14 @@ export default function TradePage({ params }: PageProps) {
                     </div>
                 </main>
             </div>
+
+            {showCancelModal && (
+                <CancelOrderModal
+                    onConfirm={handleCancelOrder}
+                    onClose={() => setShowCancelModal(false)}
+                    isCancelling={isCancelling}
+                />
+            )}
         </div>
     );
 }

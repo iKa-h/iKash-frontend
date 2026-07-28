@@ -16,6 +16,9 @@ export interface TradeEvidenceUploaderProps {
     amount: number;
     evidenceUrl?: string | null;
     onStatusChange: () => void;
+    canCancel: boolean;
+    isCancelling: boolean;
+    onCancelOrder: () => void;
 }
 
 export function TradeEvidenceUploader({
@@ -23,7 +26,10 @@ export function TradeEvidenceUploader({
     escrowStatus,
     buyerAddress,
     evidenceUrl,
-    onStatusChange
+    onStatusChange,
+    canCancel,
+    isCancelling,
+    onCancelOrder
 }: TradeEvidenceUploaderProps) {
     const { markFiatSent, syncEscrow, uploadEvidence } = useEscrows();
 
@@ -187,9 +193,8 @@ export function TradeEvidenceUploader({
     };
 
     const handleCancel = () => {
-        if (confirm("Are you sure you want to cancel this P2P operation?")) {
-            alert("Operation cancelled.");
-        }
+        if (!canCancel || isCancelling) return;
+        onCancelOrder();
     };
 
     const handleSignatureRetry = async () => {
@@ -446,9 +451,10 @@ export function TradeEvidenceUploader({
                     <button 
                         type="button" 
                         onClick={handleCancel}
-                        className="bg-transparent hover:bg-white/[0.02] w-full h-[58px] text-[#C2C7D0] border border-[rgba(69,73,50,0.3)] font-bold text-[16px] leading-[24px] rounded-[12px] uppercase transition-all duration-200 tracking-[-0.4px] cursor-pointer"
+                        disabled={!canCancel || isCancelling}
+                        className="bg-transparent hover:bg-[#FF6B6B]/5 hover:border-[#FF6B6B]/50 hover:text-[#FF6B6B] disabled:hover:bg-transparent disabled:hover:border-[rgba(69,73,50,0.3)] disabled:hover:text-[#C2C7D0] w-full h-[58px] text-[#C2C7D0] border border-[rgba(69,73,50,0.3)] font-bold text-[16px] leading-[24px] rounded-[12px] uppercase transition-all duration-200 tracking-[-0.4px] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                        CANCEL OPERATION
+                        {isCancelling ? "CANCELLING..." : "CANCEL OPERATION"}
                     </button>
                 )}
             </div>

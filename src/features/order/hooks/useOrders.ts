@@ -4,6 +4,24 @@ import { CreateOrder } from "../models/createOrder";
 import { UpdateOrder } from "../models/updateOrder";
 import { useUser } from "../../user/presentation/context/UserContext";
 
+/**
+ * Backend errors are shaped as { statusCode, error, message } (see
+ * AppException in ikash-backend). This preserves that shape on the client
+ * so callers can branch on `err.code` (e.g. "ORDER_CANCELLATION_NOT_ALLOWED")
+ * instead of parsing message text.
+ */
+export class ApiError extends Error {
+    status: number;
+    code?: string;
+
+    constructor(message: string, status: number, code?: string) {
+        super(message);
+        this.name = "ApiError";
+        this.status = status;
+        this.code = code;
+    }
+}
+
 export function useOrders() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [order, setOrder] = useState<Order | null>(null);
@@ -17,7 +35,7 @@ export function useOrders() {
         if (!res.ok) {
             const errData = await res.json().catch(() => ({}));
             const msg = errData.message ? (Array.isArray(errData.message) ? errData.message.join(', ') : errData.message) : defaultError;
-            throw new Error(msg);
+            throw new ApiError(msg, res.status, errData.error);
         }
         return res.json();
     }, [logout]);
@@ -88,5 +106,23 @@ export function useOrders() {
         }
     };
 
-    return { orders, order, createOrder, getOrder, updateOrder, fetchUserOrders };
+    const cancelOrder = async (orderId: string) => {
+        try {
+            const headers: Record<string, string> = { "Content-type": "application/json" };
+            if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
+
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}/cancel`, {
+                method: "POST",
+                headers,
+            });
+            const data = await handleResponse(res, 'Cancel order error');
+            setOrder(data);
+            return data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    };
+
+    return { orders, order, createOrder, getOrder, updateOrder, cancelOrder, fetchUserOrders };
 }
