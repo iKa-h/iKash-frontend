@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
 import Image from 'next/image'
 import { ConnectButton } from "@/features/wallet/presentation/components/ConnectButton";
+import { walletOptions } from "@/features/wallet/config/wallet-options";
 import { usePathname } from "next/navigation";
+import { Menu, X } from "lucide-react";
 
 const navLinks = [
 	{ label: "Home", href: "/" },
@@ -12,13 +14,9 @@ const navLinks = [
 	{ label: "Info", href: "/info" },
 ];
 
-const walletOptions = [
-	{ label: "Lobstr", icon: "🦊", description: "Browser extension", connection: "lobstr" },
-	{ label: "Freighter", icon: "🔵", description: "Browser extension", connection: "freighter" }
-];
-
 export function Navbar({ onConnectClick }: { onConnectClick?: () => void }) {
 	const [dropdownOpen, setDropdownOpen] = useState(false);
+	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 	const pathname = usePathname()
 
@@ -35,7 +33,7 @@ export function Navbar({ onConnectClick }: { onConnectClick?: () => void }) {
 	return (
 		<nav className="w-full bg-[#010308CC] border-b border-[#FFFFFF1A] backdrop-blur-md sticky top-0 z-50 px-4 md:px-8">
 			<div className="max-w-7xl mx-auto flex items-center justify-between h-16">
-				<div className="flex flex-row">
+				<div className="flex flex-row items-center gap-4">
 					<Image
 						src="/ikashlogotipo.svg"
 						alt="Logo de ikash"
@@ -62,6 +60,7 @@ export function Navbar({ onConnectClick }: { onConnectClick?: () => void }) {
 						);
 					})}
 				</ul>
+				
 				<div className="hidden md:block relative" ref={dropdownRef}>
 					<button
 						onClick={onConnectClick || (() => setDropdownOpen(!dropdownOpen))}
@@ -76,25 +75,93 @@ export function Navbar({ onConnectClick }: { onConnectClick?: () => void }) {
 					</button>
 
 					{dropdownOpen && (
-						<div className="absolute right-0 mt-2 w-64 border border-[#BCED09] rounded-xl shadow-2xl overflow-hidden z-50">
+						<div className="absolute right-0 mt-2 w-64 border border-[#BCED09] rounded-xl shadow-2xl overflow-hidden z-50 bg-[#010308]">
 							<p className="text-xs text-gray-500 px-4 pt-3 pb-2 uppercase tracking-widest">
 								Choose wallet
 							</p>
-							{walletOptions.map((wallet) => (
-								<div key={wallet.label}>
-									<ConnectButton label={wallet.label} description={wallet.description} connection={wallet.connection} />
+							{walletOptions.filter((wallet) => wallet.enabled).map((wallet) => (
+								<div key={wallet.id}>
+									<ConnectButton label={wallet.name} description={wallet.description} walletId={wallet.id} icon={wallet.icon} />
 								</div>
 							))}
 							<div className="border-t border-white/10 px-4 py-3">
 								<p className="text-xs text-gray-600 text-center">
 									By connecting you agree to our{" "}
-									<span className="text-[#c8f135] cursor-pointer hover:underline">Terms</span>
+									<Link href="/terms" className="text-[#c8f135] cursor-pointer hover:underline">Terms</Link>
 								</p>
 							</div>
 						</div>
 					)}
 				</div>
+
+				{/* Mobile Menu Button */}
+				<div className="md:hidden flex items-center">
+					<button
+						onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+						className="text-gray-300 hover:text-white transition-colors"
+					>
+						{mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+					</button>
+				</div>
 			</div>
+
+			{/* Mobile Menu Dropdown */}
+			{mobileMenuOpen && (
+				<div className="md:hidden absolute top-16 left-0 w-full bg-[#010308] border-b border-[#FFFFFF1A] shadow-2xl z-40 py-4 px-4 flex flex-col gap-6">
+					<ul className="flex flex-col gap-4">
+						{navLinks.map((link) => {
+							const isActive = pathname === link.href;
+							return (
+								<li key={link.label}>
+									<Link
+										href={link.href}
+										onClick={() => setMobileMenuOpen(false)}
+										className={`block text-lg transition-colors duration-150 ${isActive
+											? "text-[#BCED09] font-medium"
+											: "text-gray-400 hover:text-white font-medium"
+											}`}
+									>
+										{link.label}
+									</Link>
+								</li>
+							);
+						})}
+					</ul>
+					
+					<div className="relative border-t border-[#ffffff1a] pt-6">
+						<button
+							onClick={onConnectClick || (() => setDropdownOpen(!dropdownOpen))}
+							className="flex items-center gap-2 justify-center bg-[#BCED09] hover:bg-[#9bc505] active:scale-95 text-[#010308] 
+							text-sm font-bold w-full h-12 rounded-full transition-all duration-150 cursor-pointer"
+						>
+							Connect Wallet
+							<svg width="14" height="14" viewBox="0 0 14 14" fill="none"
+								className={`transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}>
+								<path d="M3 5L7 9L11 5" stroke="#0d0d0d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+							</svg>
+						</button>
+
+						{dropdownOpen && (
+							<div className="mt-4 w-full border border-[#BCED09] rounded-xl shadow-2xl overflow-hidden bg-[#18181b]/50">
+								<p className="text-xs text-gray-500 px-4 pt-3 pb-2 uppercase tracking-widest">
+									Choose wallet
+								</p>
+								{walletOptions.filter((wallet) => wallet.enabled).map((wallet) => (
+									<div key={wallet.id}>
+										<ConnectButton label={wallet.name} description={wallet.description} walletId={wallet.id} icon={wallet.icon} />
+									</div>
+								))}
+								<div className="border-t border-white/10 px-4 py-3">
+									<p className="text-xs text-gray-600 text-center">
+										By connecting you agree to our{" "}
+										<Link href="/terms" className="text-[#c8f135] cursor-pointer hover:underline">Terms</Link>
+									</p>
+								</div>
+							</div>
+						)}
+					</div>
+				</div>
+			)}
 		</nav>
 	);
 }

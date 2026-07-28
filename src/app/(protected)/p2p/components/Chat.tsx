@@ -3,21 +3,16 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { User, MoreVertical, SendHorizontal, Paperclip } from "lucide-react";
 import { useUser } from "@/features/user/presentation/context/UserContext";
+import { useNotification } from "@/app/components/NotificationContext";
+import { useChatSocket } from "@/features/chat/hooks/useChatSocket";
+import { Message } from "@/features/chat/models/message";
+import { ChatError } from "@/features/chat/types/chat-events.types";
 
 type ChatProps = {
     orderId: string;
     chatName?: string;
     counterpartyProfileImageUrl?: string;
 };
-
-interface Message {
-    messageId: string;
-    orderId: string;
-    senderId: string;
-    content: string;
-    timestamp: string;
-    senderAlias?: string;
-}
 
 // Initial mock messages matching the exact screenshots
 const INITIAL_MOCK_MESSAGES = (orderId: string, currentUserId: string): Message[] => [
@@ -49,12 +44,13 @@ const INITIAL_MOCK_MESSAGES = (orderId: string, currentUserId: string): Message[
 
 export const Chat = ({ orderId, chatName = "Merchant Chat", counterpartyProfileImageUrl }: ChatProps) => {
     const { currentUser, accessToken } = useUser();
+    const { notify } = useNotification();
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState("");
     const [isSending, setIsSending] = useState(false);
+    const [historyLoaded, setHistoryLoaded] = useState(false);
     const [isCounterpartyTyping, setIsCounterpartyTyping] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     const isDemo = orderId === "demo" || orderId.startsWith("mock-");
 
@@ -63,61 +59,88 @@ export const Chat = ({ orderId, chatName = "Merchant Chat", counterpartyProfileI
         messagesEndRef.current?.scrollIntoView({ behavior });
     }, []);
 
-    // Fetch messages from backend
-    const fetchMessages = useCallback(async () => {
-        if (!currentUser) return;
-        try {
-            const headers: Record<string, string> = {};
-            if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
-
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat-messages?orderId=${orderId}`, { headers });
-            if (res.ok) {
-                const data: Message[] = await res.json();
-                
-                // Only update and scroll if message list actually changed to preserve rendering performance
-                setMessages(prev => {
-                    if (data.length !== prev.length) {
-                        setTimeout(() => scrollToBottom("smooth"), 100);
-                        return data;
-                    }
-                    return prev;
+    const mergeMessages = useCallback((incoming: Message | Message[]) => {
+        const additions = Array.isArray(incoming) ? incoming : [incoming];
+        setMessages((previous) => {
+            const byId = new Map(previous.map((message) => [message.messageId, message]));
+            for (const message of additions) {
+                if (message.orderId !== orderId) continue;
+                if (message.clientMessageId) {
+                    byId.delete(`optimistic:${message.clientMessageId}`);
+                }
+                byId.set(message.messageId, {
+                    ...message,
+                    deliveryStatus: message.deliveryStatus ?? "delivered",
                 });
             }
-        } catch (err) {
-            console.error("Failed to fetch chat messages:", err);
-        }
-    }, [currentUser, accessToken, orderId, scrollToBottom]);
+            return Array.from(byId.values()).sort(
+                (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+            );
+        });
+        setTimeout(() => scrollToBottom("smooth"), 50);
+    }, [orderId, scrollToBottom]);
+
+    const handleSocketError = useCallback((error: ChatError) => {
+        notify("error", error.message);
+    }, [notify]);
+
+    const { status: connectionStatus, sendMessage } = useChatSocket({
+        orderId,
+        accessToken,
+        enabled: Boolean(currentUser && accessToken && historyLoaded && !isDemo),
+        onMessage: mergeMessages,
+        onError: handleSocketError,
+    });
 
     // Load initial messages
     useEffect(() => {
         if (!currentUser) return;
 
-        if (isDemo) {
-            setMessages(INITIAL_MOCK_MESSAGES(orderId, currentUser.userId));
-            setTimeout(() => scrollToBottom("auto"), 100);
-        } else {
-            // Live sync fetch
-            fetchMessages();
-            
-            // Set up polling loop every 1000ms
-            pollingIntervalRef.current = setInterval(() => {
-                fetchMessages();
-            }, 1000);
+        let cancelled = false;
+        queueMicrotask(() => {
+            if (cancelled) return;
+            setMessages(isDemo ? INITIAL_MOCK_MESSAGES(orderId, currentUser.userId) : []);
+            setHistoryLoaded(isDemo);
+            if (isDemo) setTimeout(() => scrollToBottom("auto"), 100);
+        });
+
+        if (!isDemo) {
+            const loadHistory = async () => {
+                try {
+                    const headers: Record<string, string> = {};
+                    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+                    const response = await fetch(
+                        `${process.env.NEXT_PUBLIC_API_URL}/chat-messages?orderId=${encodeURIComponent(orderId)}`,
+                        { headers },
+                    );
+                    if (!response.ok) throw new Error("Unable to load chat history.");
+                    const history: Message[] = await response.json();
+                    if (!cancelled) {
+                        mergeMessages(history);
+                        setHistoryLoaded(true);
+                    }
+                } catch (error) {
+                    if (!cancelled) {
+                        notify("error", error instanceof Error ? error.message : "Unable to load chat history.");
+                        // History failure should not prevent live messages from working.
+                        setHistoryLoaded(true);
+                    }
+                }
+            };
+            void loadHistory();
         }
 
         return () => {
-            if (pollingIntervalRef.current) {
-                clearInterval(pollingIntervalRef.current);
-            }
+            cancelled = true;
         };
-    }, [orderId, currentUser, isDemo, fetchMessages, scrollToBottom]);
+    }, [orderId, currentUser, accessToken, isDemo, mergeMessages, notify, scrollToBottom]);
 
     const handleSend = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         if (!inputText.trim() || !currentUser || isSending) return;
+        if (!isDemo && connectionStatus !== "connected") return;
 
         const currentText = inputText.trim();
-        setInputText("");
         setIsSending(true);
 
         if (isDemo) {
@@ -132,6 +155,7 @@ export const Chat = ({ orderId, chatName = "Merchant Chat", counterpartyProfileI
             };
 
             setMessages(prev => [...prev, userMsg]);
+            setInputText("");
             setTimeout(() => scrollToBottom("smooth"), 50);
             setIsSending(false);
 
@@ -157,31 +181,48 @@ export const Chat = ({ orderId, chatName = "Merchant Chat", counterpartyProfileI
             }, 1800);
 
         } else {
-            // Post real message to backend
+            const clientMessageId = crypto.randomUUID();
+            const optimisticId = `optimistic:${clientMessageId}`;
+            mergeMessages({
+                messageId: optimisticId,
+                clientMessageId,
+                orderId,
+                senderId: currentUser.userId,
+                content: currentText,
+                timestamp: new Date().toISOString(),
+                deliveryStatus: "sending",
+            });
+            setInputText("");
+
             try {
-                const headers: Record<string, string> = { "Content-Type": "application/json" };
-                if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
-
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat-messages`, {
-                    method: "POST",
-                    headers,
-                    body: JSON.stringify({
-                        orderId,
-                        senderId: currentUser.userId,
-                        content: currentText
-                    })
-                });
-
-                if (res.ok) {
-                    await fetchMessages();
-                }
-            } catch (err) {
-                console.error("Failed to post message:", err);
+                const created = await sendMessage(currentText, clientMessageId);
+                mergeMessages(created);
+            } catch (error) {
+                setMessages((previous) => previous.map((message) =>
+                    message.messageId === optimisticId
+                        ? { ...message, deliveryStatus: "failed" }
+                        : message,
+                ));
+                notify("error", error instanceof Error ? error.message : "Message could not be sent.");
             } finally {
                 setIsSending(false);
             }
         }
     };
+
+    const connectionLabel = isDemo
+        ? "Demo chat"
+        : ({
+            connected: "Live",
+            connecting: "Connecting…",
+            reconnecting: "Reconnecting…",
+            disconnected: "Disconnected",
+            "authentication-failed": "Authentication failed",
+            unauthorized: "Chat access denied",
+        } as const)[connectionStatus];
+    const canSend = Boolean(
+        inputText.trim() && !isSending && currentUser && (isDemo || connectionStatus === "connected"),
+    );
 
     return (
         <div className="w-full h-full bg-[#1B1B21] flex flex-col overflow-hidden shrink-0 font-space select-none">
@@ -200,8 +241,10 @@ export const Chat = ({ orderId, chatName = "Merchant Chat", counterpartyProfileI
                         <p className="text-white font-bold text-[14px] leading-5 font-space">
                             {chatName}
                         </p>
-                        <p className="text-[10px] font-bold leading-[15px] tracking-[0.5px] text-[#BCED09] uppercase">
-                            Typically replies in 2m
+                        <p className={`text-[10px] font-bold leading-[15px] tracking-[0.5px] uppercase ${
+                            isDemo || connectionStatus === "connected" ? "text-[#BCED09]" : "text-amber-400"
+                        }`}>
+                            {connectionLabel}
                         </p>
                     </div>
                 </div>
@@ -241,8 +284,16 @@ export const Chat = ({ orderId, chatName = "Merchant Chat", counterpartyProfileI
                                 >
                                     {msg.content}
                                 </div>
-                                <span className={`text-[9px] text-[#8F8389] font-bold px-1`}>
-                                    {timeStr} {isOwnMessage && "• Delivered"}
+                                <span className={`text-[9px] font-bold px-1 ${
+                                    msg.deliveryStatus === "failed" ? "text-red-400" : "text-[#8F8389]"
+                                }`}>
+                                    {timeStr} {isOwnMessage && (
+                                        msg.deliveryStatus === "sending"
+                                            ? "• Sending…"
+                                            : msg.deliveryStatus === "failed"
+                                                ? "• Failed"
+                                                : "• Delivered"
+                                    )}
                                 </span>
                             </div>
                         );
@@ -270,11 +321,12 @@ export const Chat = ({ orderId, chatName = "Merchant Chat", counterpartyProfileI
                         type="text" 
                         value={inputText}
                         onChange={(e) => setInputText(e.target.value)}
+                        disabled={!isDemo && connectionStatus !== "connected"}
                         className="bg-[#0E0E13] text-white w-full h-[44px] pl-4 pr-12 rounded-[8px] border border-[rgba(69,73,50,0.3)] focus:border-[#DAFF00]/50 focus:outline-none placeholder:text-[#8F8389CC] text-[12px] font-semibold font-space" 
-                        placeholder="Type a message..." 
+                        placeholder={connectionStatus === "connected" || isDemo ? "Type a message..." : connectionLabel}
                     />
                     <div className="absolute right-3 flex items-center gap-2">
-                        <button type="submit" className="text-[#DAFF00] hover:scale-105 transition-transform cursor-pointer">
+                        <button type="submit" disabled={!canSend} className="text-[#DAFF00] hover:scale-105 transition-transform cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
                             <SendHorizontal className="w-5 h-5 text-[#DAFF00]" />
                         </button>
                     </div>

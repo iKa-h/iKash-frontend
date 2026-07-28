@@ -154,7 +154,7 @@ export default function OrdersPage() {
       // For demo, redirect to first real order or do a notification
       router.push(`/p2p/orders/demo`);
     } else {
-      router.push(`/p2p/orders/${orderId.replace(/-/g, "")}`);
+      router.push(`/p2p/orders/${orderId}`);
     }
   };
 

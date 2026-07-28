@@ -10,15 +10,17 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@lobstrco/signer-extension-api": "^2.0.0",
-    "@stellar/freighter-api": "^6.0.1",
+    "@creit.tech/stellar-wallets-kit": "2.5.0",
+    "jspdf": "^4.2.1",
     "lucide-react": "^1.16.0",
     "next": "16.1.6",
+    "pino": "^10.3.1",
     "qrcode.react": "^4.2.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.9.1",
-    "sileo": "^0.1.5"
+    "sileo": "^0.1.5",
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -33,5 +35,15 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.9"
+  },
+  "pnpm": {
+    "overrides": {
+      "@coinbase/cdp-sdk": "1.52.0",
+      "@bufbuild/protobuf": "2.12.1",
+      "jose": "6.2.3",
+      "viem": "2.55.2",
+      "ip-address": "10.2.0",
+      "undici-types": "7.28.0"
+    }
   }
 }

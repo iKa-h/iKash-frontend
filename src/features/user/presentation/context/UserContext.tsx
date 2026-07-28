@@ -53,7 +53,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
             if (storedUser && storedToken && !isTokenExpired(storedToken)) {
                 try {
-                    setCurrentUser(JSON.parse(storedUser));
+                    const parsedUser = JSON.parse(storedUser);
+                    // Force re-login if local user has old wallet address as userId
+                    if (parsedUser.userId && parsedUser.userId.startsWith('G') && parsedUser.userId.length === 56) {
+                        localStorage.removeItem('ikash_user');
+                        localStorage.removeItem('ikash_token');
+                        localStorage.removeItem('ikash_wallet_session');
+                        walletService.clearSession();
+                        window.location.href = "/";
+                        return;
+                    }
+                    setCurrentUser(parsedUser);
                     return;
                 } catch (err) {
                     console.error('Error parsing stored user:', err);

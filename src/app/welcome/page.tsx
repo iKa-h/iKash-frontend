@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { Navbar } from "./components/Navbar";
 import { useWalletContext } from "../../features/wallet/presentation/context/WalletContext";
+import { useWalletAvailability } from "../../features/wallet/presentation/hooks/useWalletAvailability";
+import { walletOptions } from "../../features/wallet/config/wallet-options";
 import { useRouter } from "next/navigation";
 
 // --- CUSTOM INTERACTIVE PLANET PARTICLES CANVAS (HERO) ---
@@ -524,24 +526,27 @@ function ConnectWalletModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { connect, disconnect, isConnected, provider } = useWalletContext();
+  const { connect, disconnect, isConnected, walletId } = useWalletContext();
+  const { availability } = useWalletAvailability();
   const router = useRouter();
   const [modalState, setModalState] = useState<
     "select" | "connecting" | "failed"
   >("select");
   const [errorMsg, setErrorMsg] = useState("");
-  const [selectedWallet, setSelectedWallet] = useState<
-    "freighter" | "lobstr" | null
-  >(null);
+  const [selectedWallet, setSelectedWallet] = useState<string | null>(null);
 
-  // Reset modal state on open
-  useEffect(() => {
+  // Reset modal state whenever it transitions from closed to open. Adjusting
+  // state during render (rather than in an Effect) avoids the extra
+  // commit-then-effect render pass for a prop-driven reset like this one.
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen);
     if (isOpen) {
       setModalState("select");
       setErrorMsg("");
       setSelectedWallet(null);
     }
-  }, [isOpen]);
+  }
 
   if (!isOpen) return null;
 
@@ -552,44 +557,18 @@ function ConnectWalletModal({
     onClose();
   };
 
-  const handleWalletConnect = async (selectedProvider: "freighter" | "lobstr") => {
-    if (isConnected && provider && provider !== selectedProvider) {
+  const handleWalletConnect = async (selectedWalletId: string) => {
+    if (isConnected && walletId && walletId !== selectedWalletId) {
       disconnect();
     }
-    setSelectedWallet(selectedProvider);
+    setSelectedWallet(selectedWalletId);
     setModalState("connecting");
-    
+
     try {
-      // 1. Establish wallet connection via context (Handles network checks & redirects internally)
-      await connect(selectedProvider);
-
-      // 2. Network Check (Freighter only)
-      if (selectedProvider === "freighter") {
-        const { getNetwork } = await import("@stellar/freighter-api");
-        const activeNet = await getNetwork();
-        const activeNetStr = activeNet.network || "TESTNET";
-        if (activeNetStr.toUpperCase() !== "TESTNET") {
-          throw new Error(
-            "Active network is Mainnet. Please switch your wallet configuration to TESTNET.",
-          );
-        }
-      }
-
-      // 3. Environment Check (Horizon Testnet Account existence)
-      const savedKey = localStorage.getItem("wallet:publicKey");
-      if (!savedKey) {
-        throw new Error("No public key found after connection.");
-      }
-
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-      const accountRes = await fetch(
-        `${apiUrl}/stellar/balances/${savedKey}`,
-      );
-      if (!accountRes.ok) {
-        throw new Error(
-          "Account not funded or active on Testnet. Please fund your account via Friendbot before connecting.",
-        );
-      }
+      // Connection, Testnet enforcement, Horizon funded-account check, auth
+      // and onboarding all happen inside the wallet context/service via
+      // Stellar Wallets Kit — nothing wallet-specific left to do here.
+      await connect(selectedWalletId);
 
       // Success - context handled redirection, close modal
       onClose();
@@ -599,7 +578,9 @@ function ConnectWalletModal({
     }
   };
 
-  
+  const selectedWalletName = walletOptions.find((w) => w.id === selectedWallet)?.name ?? "your wallet";
+
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop with blur */}
@@ -703,70 +684,42 @@ function ConnectWalletModal({
                 </div>
               </div>
 
-              {/* Freighter Option */}
-              <div
-                onClick={() => handleWalletConnect("freighter")}
-                className="group flex items-center justify-between p-5 bg-[#18181b]/40 border border-white/5 rounded-2xl hover:bg-[#1d1f25] hover:border-[#BCED09] hover:scale-[1.01] transition-all duration-300 cursor-pointer text-left"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-tr from-indigo-600 to-indigo-400 shadow-md overflow-hidden relative">
-                    <Image src="/freighter-icon.png" alt="Freighter" fill className="object-cover" />
-                  </div>
-                  <div>
-                    <h4 className="text-white font-bold text-lg leading-tight group-hover:text-[#BCED09] transition-colors">
-                      Freighter
-                    </h4>
-                    <p className="text-gray-500 text-xs mt-0.5 font-light">
-                      Secure browser extension for Stellar
-                    </p>
-                  </div>
-                </div>
-                <svg
-                  className="w-5 h-5 text-gray-600 group-hover:text-[#BCED09] transition-colors"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </div>
+              {/* Wallet Options — driven by the shared Stellar Wallets Kit config,
+                  so adding a wallet only means editing config/wallet-options.ts.
+                  Laid out as a 2-column grid so all 6 options render within the
+                  modal without pushing it into a long scroll. */}
+              <div className="grid grid-cols-2 gap-3">
+                {walletOptions.filter((wallet) => wallet.enabled).map((wallet) => {
+                  const isUnavailable = availability[wallet.id] === false;
 
-              {/* LOBSTR Option */}
-              <div
-                onClick={() => handleWalletConnect("lobstr")}
-                className="group flex items-center justify-between p-5 bg-[#18181b]/40 border border-white/5 rounded-2xl hover:bg-[#1d1f25] hover:border-[#BCED09] hover:scale-[1.01] transition-all duration-300 cursor-pointer text-left"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-tr from-cyan-600 to-sky-400 shadow-md overflow-hidden relative">
-                    <Image src="/lobstr-icon.png" alt="LOBSTR" fill className="object-cover" />
-                  </div>
-                  <div>
-                    <h4 className="text-white font-bold text-lg leading-tight group-hover:text-[#BCED09] transition-colors">
-                      LOBSTR
-                    </h4>
-                    <p className="text-gray-500 text-xs mt-0.5 font-light">
-                      Most popular mobile & web wallet
-                    </p>
-                  </div>
-                </div>
-                <svg
-                  className="w-5 h-5 text-gray-600 group-hover:text-[#BCED09] transition-colors"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
+                  return (
+                    <div
+                      key={wallet.id}
+                      onClick={() => {
+                        if (isUnavailable) {
+                          window.open(wallet.url, "_blank", "noopener,noreferrer");
+                          return;
+                        }
+                        handleWalletConnect(wallet.id);
+                      }}
+                      className={`group flex flex-col items-center text-center gap-2 p-4 bg-[#18181b]/40 border border-white/5 rounded-2xl transition-all duration-300 cursor-pointer ${isUnavailable ? "opacity-60" : "hover:bg-[#1d1f25] hover:border-[#BCED09] hover:scale-[1.03]"
+                        }`}
+                    >
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-tr from-white/15 to-white/5 shadow-md overflow-hidden relative">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={wallet.icon} alt={wallet.name} className="absolute inset-0 w-full h-full object-cover" />
+                      </div>
+                      <h4 className="text-white font-bold text-sm leading-tight group-hover:text-[#BCED09] transition-colors">
+                        {wallet.name}
+                      </h4>
+                      {isUnavailable && (
+                        <p className="text-gray-500 text-[11px] leading-tight font-light">
+                          Not installed
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -777,8 +730,7 @@ function ConnectWalletModal({
             <div className="w-12 h-12 border-4 border-[#BCED09] border-t-transparent rounded-full animate-spin" />
             <div>
               <h3 className="text-2xl font-bold text-white mb-2">
-                Connecting to{" "}
-                {selectedWallet === "freighter" ? "Freighter" : "LOBSTR"}...
+                Connecting to {selectedWalletName}...
               </h3>
               <p className="text-gray-400 text-sm max-w-sm mx-auto leading-relaxed">
                 Please authorize the connection request in your wallet extension
@@ -973,102 +925,28 @@ export default function HomePage() {
       <CallToActionSection handleConnectWallet={handleConnectWallet} />
 
       {/* --- FOOTER SECTION --- */}
-      <footer className="w-full bg-[#010308] border-t border-[#ffffff05] pt-24 pb-12">
-        <div className="max-w-7xl w-full mx-auto px-4 md:px-8 space-y-16">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+      <footer className="w-full bg-[#010308] border-t border-[#ffffff05] pt-16 pb-8">
+        <div className="max-w-7xl w-full mx-auto px-4 md:px-8 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             {/* Col 1: Brand Info */}
             <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <Image
-                  src="/icono-ikash.svg"
-                  alt="Logo de ikash"
-                  width={42}
-                  height={42}
-                />
-                <span className="text-2xl font-black tracking-tighter text-white">
-                  iKa$h
-                </span>
-              </div>
-              <p className="text-gray-400 text-sm font-light leading-relaxed">
+              <Image
+                src="/ikashlogotipo.svg"
+                alt="Logo de ikash"
+                width={100}
+                height={45}
+              />
+              <p className="text-gray-400 text-sm font-light leading-relaxed max-w-sm">
                 The ultimate gateway for Stellar-based financial instruments and
                 wealth optimization.
               </p>
             </div>
 
-            {/* Col 2: Platform Links */}
-            <div className="space-y-6">
-              <h4 className="text-white text-base font-bold tracking-wider uppercase">
-                Platform
-              </h4>
-              <ul className="space-y-4">
-                <li>
-                  <Link
-                    href="#"
-                    className="text-gray-400 hover:text-[#BCED09] text-sm transition-colors"
-                  >
-                    Markets
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#"
-                    className="text-gray-400 hover:text-[#BCED09] text-sm transition-colors"
-                  >
-                    Trade
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#"
-                    className="text-gray-400 hover:text-[#BCED09] text-sm transition-colors"
-                  >
-                    Governance
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Col 3: Resources Links */}
-            <div className="space-y-6">
-              <h4 className="text-white text-base font-bold tracking-wider uppercase">
-                Resources
-              </h4>
-              <ul className="space-y-4">
-                <li>
-                  <Link
-                    href="#"
-                    className="text-gray-400 hover:text-[#BCED09] text-sm transition-colors"
-                  >
-                    Documentation
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#"
-                    className="text-gray-400 hover:text-[#BCED09] text-sm transition-colors"
-                  >
-                    Security Audit
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#"
-                    className="text-gray-400 hover:text-[#BCED09] text-sm transition-colors"
-                  >
-                    API Reference
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Col 4: Connect Links */}
-            <div className="space-y-6">
-              <h4 className="text-white text-base font-bold tracking-wider uppercase">
-                Connect
-              </h4>
+            {/* Col 2: Social Icons */}
+            <div className="space-y-6 md:text-right flex flex-col md:items-end justify-center">
               <div className="flex items-center gap-4">
                 <Link
-                  href="#"
+                  href="https://github.com/iKa-h"
                   className="w-10 h-10 rounded-lg bg-[#18181b] flex items-center justify-center text-gray-300 hover:bg-[#BCED09] hover:text-[#010308] hover:shadow-[0_0_15px_rgba(188,237,9,0.3)] transition-all duration-300"
                 >
                   <svg
@@ -1081,13 +959,13 @@ export default function HomePage() {
                   </svg>
                 </Link>
                 <Link
-                  href="#"
+                  href="https://stellar.org"
                   className="w-10 h-10 rounded-lg bg-[#18181b] flex items-center justify-center text-gray-300 hover:bg-[#BCED09] hover:text-[#010308] hover:shadow-[0_0_15px_rgba(188,237,9,0.3)] transition-all duration-300"
                 >
                   <Globe className="w-5 h-5" />
                 </Link>
                 <Link
-                  href="#"
+                  href="https://stellar.expert"
                   className="w-10 h-10 rounded-lg bg-[#18181b] flex items-center justify-center text-gray-300 hover:bg-[#BCED09] hover:text-[#010308] hover:shadow-[0_0_15px_rgba(188,237,9,0.3)] transition-all duration-300"
                 >
                   <Share2 className="w-5 h-5" />
@@ -1097,17 +975,17 @@ export default function HomePage() {
           </div>
 
           {/* Bottom copyright row */}
-          <div className="border-t border-[#ffffff05] pt-12 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-gray-500 font-bold tracking-widest">
-            <span>© 2024 IKASH FINANCIAL. ALL RIGHTS RESERVED.</span>
+          <div className="border-t border-[#ffffff05] pt-6 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-gray-500 font-bold tracking-widest">
+            <span>© 2026 IKASH FINANCIAL. ALL RIGHTS RESERVED.</span>
             <div className="flex items-center gap-8">
-              <Link href="#" className="hover:text-white transition-colors">
+              <Link href="/info" className="hover:text-white transition-colors">
+                DOCS
+              </Link>
+              <Link href="/privacy" className="hover:text-white transition-colors">
                 PRIVACY
               </Link>
-              <Link href="#" className="hover:text-white transition-colors">
+              <Link href="/terms" className="hover:text-white transition-colors">
                 TERMS
-              </Link>
-              <Link href="#" className="hover:text-white transition-colors">
-                COOKIES
               </Link>
             </div>
           </div>
