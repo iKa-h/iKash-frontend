@@ -10,16 +10,18 @@ import {
     type ReactNode,
 } from "react";
 import { walletService } from "../../application/wallet.service";
-import type { WalletContext, WalletState, WalletProvider } from "../../domain/wallet.types";
+import type { WalletContext, WalletState } from "../../domain/wallet.types";
+import { mapWalletError } from "../../utils/wallet-errors";
 import { useRouter } from "next/navigation";
 import { useUsers } from "../../../user/hooks/useUsers";
 import { useUser } from "../../../user/presentation/context/UserContext";
+import { useNotification } from "@/app/components/NotificationContext";
 
 const Context = createContext<WalletContext | null>(null);
 
 const initialState: WalletState = {
     publicKey: null,
-    provider: null,
+    walletId: null,
     isConnected: false,
     isLoading: true,
     error: null,
@@ -31,6 +33,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     const router = useRouter();
     const { getOrCreateByWallet } = useUsers();
     const { setCurrentUser, setAccessToken, logout } = useUser();
+    const { notify } = useNotification();
 
     // Use refs to avoid stale closures in useEffect without triggering re-runs
     const getOrCreateRef = useRef(getOrCreateByWallet);
@@ -50,7 +53,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
             setState((s) => ({
                 ...s,
                 publicKey: session.publicKey,
-                provider: session.provider,
+                walletId: session.walletId,
                 isConnected: true,
                 isLoading: false,
             }));
@@ -67,40 +70,30 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         return () => { cancelled = true; };
     }, []);
 
-    const connect = useCallback(async (provider: WalletProvider) => {
-        setState((s) => ({ ...s, isLoading: true, error: null }));
+    const connect = useCallback(async (walletId: string) => {
+        // Switching wallets mid-session: clear the previous wallet's state
+        // before establishing the new connection so a stale address never
+        // stays visible.
+        setState((s) => ({
+            ...(s.walletId && s.walletId !== walletId ? initialState : s),
+            isLoading: true,
+            error: null,
+        }));
+
         try {
-            // 1. Validaciones previas de RED / Mainnet (Frontend Checks)
-            if (provider === "lobstr") {
-                throw new Error("LOBSTR is configured for Mainnet. Please join the waitlist instead.");
-            }
-            if (provider === "freighter") {
-                try {
-                    const { getNetwork } = await import("@stellar/freighter-api");
-                    const activeNet = await getNetwork();
-                    const activeNetStr = activeNet.network || "TESTNET";
-                    if (activeNetStr.toUpperCase() !== "TESTNET") {
-                        throw new Error("Active network is Mainnet. Please switch your wallet configuration to TESTNET.");
-                    }
-                } catch (e: unknown) {
-                    // Ignore missing freighter errors here, handled by walletService
-                    if (e instanceof Error && e.message.includes("Mainnet")) {
-                        throw e;
-                    }
-                }
-            }
+            const publicKey = await walletService.connect(walletId);
 
-            const publicKey = await walletService.connect(provider);
-
-            // 2. Environment Check (Horizon Testnet Account existence)
+            // Environment Check (Horizon Testnet Account existence)
             const horizonRes = await fetch(`https://horizon-testnet.stellar.org/accounts/${publicKey}`);
             if (!horizonRes.ok) {
                 walletService.clearSession();
                 throw new Error("Account not funded or active on Testnet. Please fund your account via Friendbot before connecting.");
             }
 
-            setState({ publicKey, provider, isConnected: true, isLoading: false, error: null });
+            setState({ publicKey, walletId, isConnected: true, isLoading: false, error: null });
 
+            // Challenge-response auth: prove ownership of the address via a
+            // signed challenge rather than trusting the public key alone.
             const token = await walletService.authenticate(publicKey);
             if (token) {
                 setAccessToken(token);
@@ -119,11 +112,13 @@ export function WalletProvider({ children }: { children: ReactNode }) {
                 router.push("/dashboard");
             }
         } catch (err) {
-            const msg = err instanceof Error ? err.message : "Error desconocido";
-            setState((s) => ({ ...s, isLoading: false, error: msg }));
+            const msg = mapWalletError(err);
+            walletService.clearSession();
+            setState({ ...initialState, isLoading: false, error: msg });
+            notify("error", msg);
             throw err; // Re-throw to be caught by the UI component
         }
-    }, [getOrCreateByWallet, setCurrentUser, setAccessToken, router]);
+    }, [getOrCreateByWallet, setCurrentUser, setAccessToken, router, notify]);
 
     const disconnect = useCallback(() => {
         walletService.clearSession();
@@ -131,8 +126,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         setState(initialState);
     }, [logout]);
 
-    const signTransaction = useCallback(async (xdr: string, network?: string) => {
-        return await walletService.signTransaction(xdr, network);
+    const signTransaction = useCallback(async (xdr: string) => {
+        return await walletService.signTransaction(xdr);
     }, []);
 
     return (

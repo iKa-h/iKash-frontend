@@ -56,7 +56,7 @@ export function OrdersSummaryBox() {
     if (orderId.startsWith("mock-")) {
       router.push(`/p2p/orders/demo`);
     } else {
-      router.push(`/p2p/orders/${orderId.replace(/-/g, "")}`);
+      router.push(`/p2p/orders/${orderId}`);
     }
   };
 

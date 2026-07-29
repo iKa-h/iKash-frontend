@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useState, ReactNode } from "react";
 import { X, CheckCircle, AlertCircle, Info } from "lucide-react";
 
 type ToastType = "success" | "error" | "warning" | "info";
@@ -20,14 +20,14 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const notify = (type: ToastType, message: string, duration = 4000) => {
+  const notify = useCallback((type: ToastType, message: string, duration = 4000) => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts(prev => [...prev, { id, type, message }]);
 
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, duration);
-  };
+  }, []);
 
   const removeToast = (id: string) => {
     setToasts(prev => prev.filter(t => t.id !== id));
