@@ -11,6 +11,22 @@ import { HanaModule } from "@creit.tech/stellar-wallets-kit/modules/hana";
 // through here, on Testnet only — the app must never open the kit's own
 // modal (StellarWalletsKit.authModal / createButton), only iKash's.
 
+import type {
+    StellarNetwork,
+    DetectedStellarNetwork,
+} from "../types/wallet-network.types";
+
+export function getExpectedStellarNetwork(): StellarNetwork {
+    const raw = (process.env.NEXT_PUBLIC_STELLAR_NETWORK || "testnet").toLowerCase();
+    return raw === "mainnet" || raw === "public" ? "mainnet" : "testnet";
+}
+
+export function getExpectedNetworkPassphrase(): string {
+    return getExpectedStellarNetwork() === "mainnet"
+        ? Networks.PUBLIC
+        : Networks.TESTNET;
+}
+
 let initialized = false;
 
 function ensureInitialized(selectedWalletId?: string) {
@@ -19,8 +35,9 @@ function ensureInitialized(selectedWalletId?: string) {
         return;
     }
 
+    const network = getExpectedNetworkPassphrase();
     StellarWalletsKit.init({
-        network: Networks.TESTNET,
+        network: network as any,
         selectedWalletId,
         modules: [
             new FreighterModule(),
@@ -34,10 +51,36 @@ function ensureInitialized(selectedWalletId?: string) {
     initialized = true;
 }
 
-async function assertTestnet(): Promise<void> {
-    const { networkPassphrase } = await StellarWalletsKit.getNetwork();
-    if (networkPassphrase !== Networks.TESTNET) {
-        throw new Error("Active network is Mainnet. Please switch your wallet configuration to TESTNET.");
+async function detectNetwork(): Promise<DetectedStellarNetwork> {
+    ensureInitialized();
+    try {
+        const net = await StellarWalletsKit.getNetwork();
+        if (!net?.networkPassphrase) return "unknown";
+        const phrase = net.networkPassphrase;
+        if (phrase === Networks.TESTNET || phrase.toLowerCase().includes("test")) {
+            return "testnet";
+        }
+        if (phrase === Networks.PUBLIC || phrase.toLowerCase().includes("public")) {
+            return "mainnet";
+        }
+        return "unknown";
+    } catch {
+        return "unknown";
+    }
+}
+
+async function assertExpectedNetwork(): Promise<void> {
+    const expected = getExpectedStellarNetwork();
+    const current = await detectNetwork();
+    if (current === "unknown") {
+        throw new Error("Unable to verify the wallet network. Reconnect your wallet and try again.");
+    }
+    if (current !== expected) {
+        const expCap = expected === "testnet" ? "Testnet" : "Mainnet";
+        const curCap = current === "testnet" ? "Testnet" : "Mainnet";
+        throw new Error(
+            `Wrong Stellar network detected. iKash is configured for ${expCap}, but your wallet is connected to ${curCap}. Switch your wallet to ${expCap} before continuing.`
+        );
     }
 }
 
@@ -65,20 +108,21 @@ export const stellarWalletKitService = {
 
     getAddress,
 
-    assertTestnet,
+    detectNetwork,
+
+    assertExpectedNetwork,
 
     async connect(walletId: string): Promise<string> {
         ensureInitialized(walletId);
         StellarWalletsKit.setWallet(walletId);
         const address = await getAddress();
-        await assertTestnet();
         return address;
     },
 
     async signTransaction(xdr: string, address?: string): Promise<string> {
-        await assertTestnet();
+        await assertExpectedNetwork();
         const { signedTxXdr } = await StellarWalletsKit.signTransaction(xdr, {
-            networkPassphrase: Networks.TESTNET,
+            networkPassphrase: getExpectedNetworkPassphrase() as any,
             address,
         });
         return signedTxXdr;
@@ -87,9 +131,9 @@ export const stellarWalletKitService = {
     // Used for the backend's login challenge: sign an arbitrary string
     // (not a transaction) to prove ownership of the address, per SEP-43.
     async signMessage(message: string, address?: string): Promise<string> {
-        await assertTestnet();
+        await assertExpectedNetwork();
         const { signedMessage } = await StellarWalletsKit.signMessage(message, {
-            networkPassphrase: Networks.TESTNET,
+            networkPassphrase: getExpectedNetworkPassphrase() as any,
             address,
         });
         return signedMessage.trim();

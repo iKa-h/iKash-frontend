@@ -6,18 +6,30 @@ export type WalletStatus =
     | "CONNECTED"
     | "ERROR";
 
+import type {
+    StellarNetwork,
+    DetectedStellarNetwork,
+} from "../types/wallet-network.types";
+
+export type { StellarNetwork, DetectedStellarNetwork };
+
 export interface WalletState {
     publicKey: string | null;
     walletId: string | null;
     isConnected: boolean;
     isLoading: boolean;
     error: string | null;
+    expectedNetwork: StellarNetwork;
+    currentNetwork: DetectedStellarNetwork;
+    isCorrectNetwork: boolean;
+    isCheckingNetwork: boolean;
 }
 
 export interface WalletActions {
     connect: (walletId: string) => Promise<void>;
     disconnect: () => void;
     signTransaction: (xdr: string, network?: string) => Promise<string>;
+    checkNetwork: () => Promise<DetectedStellarNetwork>;
 }
 
 export type WalletContext = WalletState & WalletActions;

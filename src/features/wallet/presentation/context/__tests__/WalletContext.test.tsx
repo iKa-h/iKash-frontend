@@ -17,6 +17,8 @@ vi.mock("../../../application/wallet.service", () => ({
         restoreSession: vi.fn(),
         clearSession: vi.fn(),
         authenticate: vi.fn(),
+        detectNetwork: vi.fn().mockResolvedValue("testnet"),
+        getExpectedNetwork: vi.fn().mockReturnValue("testnet"),
     },
     isSignatureCancelled: vi.fn(),
 }));
@@ -209,5 +211,114 @@ describe("WalletContext", () => {
         await waitFor(() => expect(result.current.isLoading).toBe(false));
         expect(result.current.isConnected).toBe(false);
         expect(result.current.publicKey).toBeNull();
+    });
+
+    describe("network detection & guard", () => {
+        it("identifies correct network when detected matches expected", async () => {
+            mockedWalletService.connect.mockResolvedValueOnce("GABCPUBLICKEY");
+            mockedWalletService.detectNetwork.mockResolvedValueOnce("testnet");
+
+            const { result } = renderWalletContext();
+            await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+            await act(async () => {
+                await result.current.connect("freighter-id");
+            });
+
+            expect(result.current.currentNetwork).toBe("testnet");
+            expect(result.current.isCorrectNetwork).toBe(true);
+        });
+
+        it("identifies wrong network when wallet is on mainnet but testnet is expected", async () => {
+            mockedWalletService.connect.mockResolvedValueOnce("GABCPUBLICKEY");
+            mockedWalletService.detectNetwork.mockResolvedValueOnce("mainnet");
+
+            const { result } = renderWalletContext();
+            await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+            await act(async () => {
+                await result.current.connect("freighter-id");
+            });
+
+            expect(result.current.currentNetwork).toBe("mainnet");
+            expect(result.current.isCorrectNetwork).toBe(false);
+        });
+
+        it("identifies unknown network when network cannot be determined", async () => {
+            mockedWalletService.connect.mockResolvedValueOnce("GABCPUBLICKEY");
+            mockedWalletService.detectNetwork.mockResolvedValueOnce("unknown");
+
+            const { result } = renderWalletContext();
+            await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+            await act(async () => {
+                await result.current.connect("freighter-id");
+            });
+
+            expect(result.current.currentNetwork).toBe("unknown");
+            expect(result.current.isCorrectNetwork).toBe(false);
+        });
+
+        it("updates network state when checkNetwork is triggered", async () => {
+            mockedWalletService.connect.mockResolvedValueOnce("GABCPUBLICKEY");
+            mockedWalletService.detectNetwork.mockResolvedValueOnce("mainnet");
+
+            const { result } = renderWalletContext();
+            await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+            await act(async () => {
+                await result.current.connect("freighter-id");
+            });
+            expect(result.current.isCorrectNetwork).toBe(false);
+
+            // User switches network to testnet
+            mockedWalletService.detectNetwork.mockResolvedValueOnce("testnet");
+            await act(async () => {
+                await result.current.checkNetwork();
+            });
+
+            expect(result.current.currentNetwork).toBe("testnet");
+            expect(result.current.isCorrectNetwork).toBe(true);
+        });
+
+        it("blocks signTransaction when on wrong network", async () => {
+            mockedWalletService.connect.mockResolvedValueOnce("GABCPUBLICKEY");
+            mockedWalletService.detectNetwork.mockResolvedValueOnce("mainnet");
+
+            const { result } = renderWalletContext();
+            await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+            await act(async () => {
+                await result.current.connect("freighter-id");
+            });
+
+            mockedWalletService.detectNetwork.mockResolvedValueOnce("mainnet");
+            await expect(result.current.signTransaction("dummy-xdr")).rejects.toThrow(
+                /Wrong Stellar network detected/
+            );
+            expect(mockedWalletService.signTransaction).not.toHaveBeenCalled();
+        });
+
+        it("allows signTransaction when on correct network", async () => {
+            mockedWalletService.connect.mockResolvedValueOnce("GABCPUBLICKEY");
+            mockedWalletService.detectNetwork.mockResolvedValueOnce("testnet");
+            mockedWalletService.signTransaction.mockResolvedValueOnce("signed-xdr");
+
+            const { result } = renderWalletContext();
+            await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+            await act(async () => {
+                await result.current.connect("freighter-id");
+            });
+
+            mockedWalletService.detectNetwork.mockResolvedValueOnce("testnet");
+            let signed = "";
+            await act(async () => {
+                signed = await result.current.signTransaction("dummy-xdr");
+            });
+
+            expect(signed).toBe("signed-xdr");
+            expect(mockedWalletService.signTransaction).toHaveBeenCalledWith("dummy-xdr");
+        });
     });
 });
