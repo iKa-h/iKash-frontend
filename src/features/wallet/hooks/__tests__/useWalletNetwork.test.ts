@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useWalletNetwork } from "../useWalletNetwork";
 import * as walletContextModule from "../../presentation/context/WalletContext";
+import type { WalletContext } from "../../domain/wallet.types";
 
 vi.mock("../../presentation/context/WalletContext", () => ({
     useWalletContext: vi.fn(),
@@ -22,7 +23,7 @@ describe("useWalletNetwork", () => {
             isCheckingNetwork: false,
             error: null,
             checkNetwork: mockCheckNetwork,
-        } as any);
+        } as unknown as WalletContext);
 
         const { result } = renderHook(() => useWalletNetwork());
 

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ConnectedWalletCard } from "../ConnectedWalletCard";
 import * as walletContextModule from "@/features/wallet/presentation/context/WalletContext";
+import type { WalletContext } from "@/features/wallet";
 
 vi.mock("@/features/wallet/presentation/context/WalletContext", () => ({
     useWalletContext: vi.fn(),
@@ -17,12 +18,12 @@ describe("ConnectedWalletCard", () => {
             publicKey: null,
             walletId: null,
             isConnected: false,
-        } as any);
+        } as unknown as WalletContext);
 
         render(<ConnectedWalletCard />);
 
-        expect(screen.getByText("Not Connected")).toBeInTheDocument();
-        expect(screen.getByText("No Stellar wallet is currently connected.")).toBeInTheDocument();
+        expect(screen.getByText("Not Connected")).toBeTruthy();
+        expect(screen.getByText("No Stellar wallet is currently connected.")).toBeTruthy();
     });
 
     it("displays truncated address and allows toggling full address", () => {
@@ -31,18 +32,18 @@ describe("ConnectedWalletCard", () => {
             publicKey: fullKey,
             walletId: "freighter",
             isConnected: true,
-        } as any);
+        } as unknown as WalletContext);
 
         render(<ConnectedWalletCard />);
 
-        expect(screen.getByText("Connected")).toBeInTheDocument();
-        expect(screen.getByText("GABC12...012XYZ")).toBeInTheDocument();
+        expect(screen.getByText("Connected")).toBeTruthy();
+        expect(screen.getByText("GABC12...012XYZ")).toBeTruthy();
 
         // Toggle full key
         const toggleBtn = screen.getByRole("button", { name: /view full address/i });
         fireEvent.click(toggleBtn);
 
-        expect(screen.getByText(fullKey)).toBeInTheDocument();
+        expect(screen.getByText(fullKey)).toBeTruthy();
     });
 
     it("copies public key to clipboard when Copy button is clicked", async () => {
@@ -58,7 +59,7 @@ describe("ConnectedWalletCard", () => {
             publicKey: fullKey,
             walletId: "freighter",
             isConnected: true,
-        } as any);
+        } as unknown as WalletContext);
 
         render(<ConnectedWalletCard />);
 
@@ -66,6 +67,6 @@ describe("ConnectedWalletCard", () => {
         fireEvent.click(copyBtn);
 
         expect(writeTextMock).toHaveBeenCalledWith(fullKey);
-        expect(await screen.findByText("Copied")).toBeInTheDocument();
+        expect(await screen.findByText("Copied")).toBeTruthy();
     });
 });

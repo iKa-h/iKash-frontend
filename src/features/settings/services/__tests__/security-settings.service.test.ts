@@ -15,10 +15,9 @@ describe("securitySettingsService", () => {
             emailNotifications: true,
         };
 
-        global.fetch = vi.fn().mockResolvedValueOnce({
-            ok: true,
-            json: vi.fn().mockResolvedValueOnce(mockPrefs),
-        } as any);
+        global.fetch = vi.fn().mockResolvedValueOnce(
+            new Response(JSON.stringify(mockPrefs), { status: 200 })
+        );
 
         const result = await securitySettingsService.getSecuritySettings("test-jwt");
 
@@ -42,10 +41,9 @@ describe("securitySettingsService", () => {
             emailNotifications: true,
         };
 
-        global.fetch = vi.fn().mockResolvedValueOnce({
-            ok: true,
-            json: vi.fn().mockResolvedValueOnce(updatedPrefs),
-        } as any);
+        global.fetch = vi.fn().mockResolvedValueOnce(
+            new Response(JSON.stringify(updatedPrefs), { status: 200 })
+        );
 
         const result = await securitySettingsService.updateSecuritySettings(
             { emailNotifications: true },
@@ -78,10 +76,9 @@ describe("securitySettingsService", () => {
             },
         ];
 
-        global.fetch = vi.fn().mockResolvedValueOnce({
-            ok: true,
-            json: vi.fn().mockResolvedValueOnce(mockSessions),
-        } as any);
+        global.fetch = vi.fn().mockResolvedValueOnce(
+            new Response(JSON.stringify(mockSessions), { status: 200 })
+        );
 
         const result = await securitySettingsService.getRecentSessions("test-jwt");
 

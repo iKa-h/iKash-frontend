@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { WrongNetworkBanner } from "../WrongNetworkBanner";
 import * as walletContextModule from "../../context/WalletContext";
+import type { WalletContext } from "@/features/wallet";
 
 vi.mock("../../context/WalletContext", () => ({
     useWalletContext: vi.fn(),
@@ -22,7 +23,7 @@ describe("WrongNetworkBanner", () => {
             currentNetwork: "mainnet",
             isCheckingNetwork: false,
             checkNetwork: mockCheckNetwork,
-        } as any);
+        } as unknown as WalletContext);
 
         const { container } = render(<WrongNetworkBanner />);
         expect(container.firstChild).toBeNull();
@@ -36,7 +37,7 @@ describe("WrongNetworkBanner", () => {
             currentNetwork: "testnet",
             isCheckingNetwork: false,
             checkNetwork: mockCheckNetwork,
-        } as any);
+        } as unknown as WalletContext);
 
         const { container } = render(<WrongNetworkBanner />);
         expect(container.firstChild).toBeNull();
@@ -50,14 +51,14 @@ describe("WrongNetworkBanner", () => {
             currentNetwork: "mainnet",
             isCheckingNetwork: false,
             checkNetwork: mockCheckNetwork,
-        } as any);
+        } as unknown as WalletContext);
 
         render(<WrongNetworkBanner />);
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-        expect(screen.getByText("Wrong Stellar network detected")).toBeInTheDocument();
+        expect(screen.getByRole("alert")).toBeTruthy();
+        expect(screen.getByText("Wrong Stellar network detected")).toBeTruthy();
         expect(
             screen.getByText(/iKash is currently running on Testnet \(detected: Mainnet\)/)
-        ).toBeInTheDocument();
+        ).toBeTruthy();
     });
 
     it("renders unknown network warning when network cannot be determined", () => {
@@ -68,16 +69,16 @@ describe("WrongNetworkBanner", () => {
             currentNetwork: "unknown",
             isCheckingNetwork: false,
             checkNetwork: mockCheckNetwork,
-        } as any);
+        } as unknown as WalletContext);
 
         render(<WrongNetworkBanner />);
-        expect(screen.getByRole("alert")).toBeInTheDocument();
+        expect(screen.getByRole("alert")).toBeTruthy();
         expect(
             screen.getByText("Unable to verify the wallet network")
-        ).toBeInTheDocument();
+        ).toBeTruthy();
         expect(
             screen.getByText("Unable to verify the wallet network. Reconnect your wallet and try again.")
-        ).toBeInTheDocument();
+        ).toBeTruthy();
     });
 
     it("triggers checkNetwork when Recheck Network button is clicked", () => {
@@ -88,7 +89,7 @@ describe("WrongNetworkBanner", () => {
             currentNetwork: "mainnet",
             isCheckingNetwork: false,
             checkNetwork: mockCheckNetwork,
-        } as any);
+        } as unknown as WalletContext);
 
         render(<WrongNetworkBanner />);
         const button = screen.getByRole("button", { name: /Recheck Network/i });

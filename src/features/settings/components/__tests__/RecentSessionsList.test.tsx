@@ -24,7 +24,7 @@ describe("RecentSessionsList", () => {
 
         render(<RecentSessionsList />);
 
-        expect(screen.getByText("No recent session activity is available.")).toBeInTheDocument();
+        expect(screen.getByText("No recent session activity is available.")).toBeTruthy();
     });
 
     it("renders sessions with current session badge clearly identified", () => {
@@ -54,13 +54,13 @@ describe("RecentSessionsList", () => {
 
         render(<RecentSessionsList />);
 
-        expect(screen.getByText("Chrome on Windows")).toBeInTheDocument();
-        expect(screen.getByText("Current session")).toBeInTheDocument();
-        expect(screen.getByText("IP: 192.0.2.1")).toBeInTheDocument();
+        expect(screen.getByText("Chrome on Windows")).toBeTruthy();
+        expect(screen.getByText("Current session")).toBeTruthy();
+        expect(screen.getByText("IP: 192.0.2.1")).toBeTruthy();
 
-        expect(screen.getByText("Safari on iOS Device")).toBeInTheDocument();
-        expect(screen.getByText("expired")).toBeInTheDocument();
-        expect(screen.getByText("IP: 198.51.100.42")).toBeInTheDocument();
+        expect(screen.getByText("Safari on iOS Device")).toBeTruthy();
+        expect(screen.getByText("expired")).toBeTruthy();
+        expect(screen.getByText("IP: 198.51.100.42")).toBeTruthy();
     });
 
     it("calls reload when Refresh button is clicked", () => {

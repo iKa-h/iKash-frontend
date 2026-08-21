@@ -18,8 +18,8 @@ describe("SecurityTab", () => {
     it("renders all security sections", () => {
         render(<SecurityTab />);
 
-        expect(screen.getByTestId("connected-wallet-card")).toBeInTheDocument();
-        expect(screen.getByTestId("security-preferences")).toBeInTheDocument();
-        expect(screen.getByTestId("recent-sessions-list")).toBeInTheDocument();
+        expect(screen.getByTestId("connected-wallet-card")).toBeTruthy();
+        expect(screen.getByTestId("security-preferences")).toBeTruthy();
+        expect(screen.getByTestId("recent-sessions-list")).toBeTruthy();
     });
 });

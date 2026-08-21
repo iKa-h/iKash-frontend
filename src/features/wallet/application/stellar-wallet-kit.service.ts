@@ -21,7 +21,7 @@ export function getExpectedStellarNetwork(): StellarNetwork {
     return raw === "mainnet" || raw === "public" ? "mainnet" : "testnet";
 }
 
-export function getExpectedNetworkPassphrase(): string {
+export function getExpectedNetworkPassphrase(): Networks {
     return getExpectedStellarNetwork() === "mainnet"
         ? Networks.PUBLIC
         : Networks.TESTNET;
@@ -37,7 +37,7 @@ function ensureInitialized(selectedWalletId?: string) {
 
     const network = getExpectedNetworkPassphrase();
     StellarWalletsKit.init({
-        network: network as any,
+        network,
         selectedWalletId,
         modules: [
             new FreighterModule(),
@@ -116,13 +116,14 @@ export const stellarWalletKitService = {
         ensureInitialized(walletId);
         StellarWalletsKit.setWallet(walletId);
         const address = await getAddress();
+        await assertExpectedNetwork();
         return address;
     },
 
     async signTransaction(xdr: string, address?: string): Promise<string> {
         await assertExpectedNetwork();
         const { signedTxXdr } = await StellarWalletsKit.signTransaction(xdr, {
-            networkPassphrase: getExpectedNetworkPassphrase() as any,
+            networkPassphrase: getExpectedNetworkPassphrase(),
             address,
         });
         return signedTxXdr;
@@ -133,7 +134,7 @@ export const stellarWalletKitService = {
     async signMessage(message: string, address?: string): Promise<string> {
         await assertExpectedNetwork();
         const { signedMessage } = await StellarWalletsKit.signMessage(message, {
-            networkPassphrase: getExpectedNetworkPassphrase() as any,
+            networkPassphrase: getExpectedNetworkPassphrase(),
             address,
         });
         return signedMessage.trim();

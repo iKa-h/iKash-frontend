@@ -32,17 +32,17 @@ describe("SecurityPreferences", () => {
 
         render(<SecurityPreferences />);
 
-        expect(screen.getByText("Security Updates")).toBeInTheDocument();
-        expect(screen.getByText("Login Alerts")).toBeInTheDocument();
-        expect(screen.getByText("Transaction Notifications")).toBeInTheDocument();
-        expect(screen.getByText("Escrow Status Updates")).toBeInTheDocument();
-        expect(screen.getByText("Email Notifications")).toBeInTheDocument();
+        expect(screen.getByText("Security Updates")).toBeTruthy();
+        expect(screen.getByText("Login Alerts")).toBeTruthy();
+        expect(screen.getByText("Transaction Notifications")).toBeTruthy();
+        expect(screen.getByText("Escrow Status Updates")).toBeTruthy();
+        expect(screen.getByText("Email Notifications")).toBeTruthy();
 
         const securityUpdatesToggle = screen.getByRole("switch", { name: /toggle security updates/i });
-        expect(securityUpdatesToggle).toHaveAttribute("aria-checked", "true");
+        expect(securityUpdatesToggle.getAttribute("aria-checked")).toBe("true");
 
         const txToggle = screen.getByRole("switch", { name: /toggle transaction notifications/i });
-        expect(txToggle).toHaveAttribute("aria-checked", "false");
+        expect(txToggle.getAttribute("aria-checked")).toBe("false");
     });
 
     it("calls updatePreference when toggle is clicked", () => {
