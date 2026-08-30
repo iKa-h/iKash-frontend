@@ -19,12 +19,18 @@ import { useNotifications } from "@/features/notifications";
 
 const Context = createContext<WalletContext | null>(null);
 
+const expectedNetwork = walletService.getExpectedNetwork();
+
 const initialState: WalletState = {
     publicKey: null,
     walletId: null,
     isConnected: false,
     isLoading: true,
     error: null,
+    expectedNetwork,
+    currentNetwork: "unknown",
+    isCorrectNetwork: false,
+    isCheckingNetwork: false,
 };
 
 export function WalletProvider({ children }: { children: ReactNode }) {
@@ -41,22 +47,53 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     useEffect(() => { getOrCreateRef.current = getOrCreateByWallet; }, [getOrCreateByWallet]);
     useEffect(() => { setCurrentUserRef.current = setCurrentUser; }, [setCurrentUser]);
 
+    const checkNetwork = useCallback(async () => {
+        setState((s) => ({ ...s, isCheckingNetwork: true }));
+        try {
+            const detected = await walletService.detectNetwork();
+            const isCorrect = detected === expectedNetwork;
+            setState((s) => ({
+                ...s,
+                currentNetwork: detected,
+                isCorrectNetwork: isCorrect,
+                isCheckingNetwork: false,
+            }));
+            return detected;
+        } catch {
+            setState((s) => ({
+                ...s,
+                currentNetwork: "unknown",
+                isCorrectNetwork: false,
+                isCheckingNetwork: false,
+            }));
+            return "unknown" as const;
+        }
+    }, []);
+
     // Restaura sesión al montar (runs once)
     useEffect(() => {
         let cancelled = false;
         walletService.restoreSession().then(async (session) => {
             if (cancelled || !session?.publicKey) {
                 if (!cancelled) setState((s) => ({ ...s, isLoading: false }));
-                return
-            };
+                return;
+            }
 
-            setState((s) => ({
-                ...s,
-                publicKey: session.publicKey,
-                walletId: session.walletId,
-                isConnected: true,
-                isLoading: false,
-            }));
+            const detected = await walletService.detectNetwork();
+            const isCorrect = detected === expectedNetwork;
+
+            if (!cancelled) {
+                setState((s) => ({
+                    ...s,
+                    publicKey: session.publicKey,
+                    walletId: session.walletId,
+                    isConnected: true,
+                    isLoading: false,
+                    currentNetwork: detected,
+                    isCorrectNetwork: isCorrect,
+                    isCheckingNetwork: false,
+                }));
+            }
 
             try {
                 const userAccount = await getOrCreateRef.current(session.publicKey);
@@ -69,6 +106,23 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         });
         return () => { cancelled = true; };
     }, []);
+
+    // Monitor network changes when wallet is connected
+    useEffect(() => {
+        if (!state.isConnected) return;
+
+        const handleCheck = () => {
+            void checkNetwork();
+        };
+
+        window.addEventListener("focus", handleCheck);
+        document.addEventListener("visibilitychange", handleCheck);
+
+        return () => {
+            window.removeEventListener("focus", handleCheck);
+            document.removeEventListener("visibilitychange", handleCheck);
+        };
+    }, [state.isConnected, checkNetwork]);
 
     const connect = useCallback(async (walletId: string) => {
         // Switching wallets mid-session: clear the previous wallet's state
@@ -83,14 +137,30 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         try {
             const publicKey = await walletService.connect(walletId);
 
-            // Environment Check (Horizon Testnet Account existence)
-            const horizonRes = await fetch(`https://horizon-testnet.stellar.org/accounts/${publicKey}`);
-            if (!horizonRes.ok) {
-                walletService.clearSession();
-                throw new Error("Account not funded or active on Testnet. Please fund your account via Friendbot before connecting.");
+            // Check network immediately upon connection
+            const detected = await walletService.detectNetwork();
+            const isCorrect = detected === expectedNetwork;
+
+            if (expectedNetwork === "testnet") {
+                // Environment Check (Horizon Testnet Account existence)
+                const horizonRes = await fetch(`https://horizon-testnet.stellar.org/accounts/${publicKey}`);
+                if (!horizonRes.ok) {
+                    walletService.clearSession();
+                    throw new Error("Account not funded or active on Testnet. Please fund your account via Friendbot before connecting.");
+                }
             }
 
-            setState({ publicKey, walletId, isConnected: true, isLoading: false, error: null });
+            setState({
+                publicKey,
+                walletId,
+                isConnected: true,
+                isLoading: false,
+                error: null,
+                expectedNetwork,
+                currentNetwork: detected,
+                isCorrectNetwork: isCorrect,
+                isCheckingNetwork: false,
+            });
 
             // Challenge-response auth: prove ownership of the address via a
             // signed challenge rather than trusting the public key alone.
@@ -123,15 +193,24 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     const disconnect = useCallback(() => {
         walletService.clearSession();
         logout();
-        setState(initialState);
+        setState({
+            ...initialState,
+            isLoading: false,
+        });
     }, [logout]);
 
     const signTransaction = useCallback(async (xdr: string) => {
+        const detected = await walletService.detectNetwork();
+        if (detected !== expectedNetwork) {
+            const expCap = expectedNetwork === "testnet" ? "Testnet" : "Mainnet";
+            const curCap = detected === "unknown" ? "unknown network" : detected;
+            throw new Error(`Wrong Stellar network detected. iKash is configured for ${expCap}, but your wallet is connected to ${curCap}. Switch your wallet to ${expCap} before continuing.`);
+        }
         return await walletService.signTransaction(xdr);
     }, []);
 
     return (
-        <Context.Provider value={{ ...state, connect, disconnect, signTransaction }}>
+        <Context.Provider value={{ ...state, connect, disconnect, signTransaction, checkNetwork }}>
             {children}
         </Context.Provider>
     );

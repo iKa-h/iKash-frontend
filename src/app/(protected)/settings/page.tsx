@@ -5,8 +5,12 @@ import { Aside } from "../../components/Aside";
 import { Header } from "../../components/Header";
 import { ProfileTab } from "./components/ProfileTab";
 import { getRovingFocusIndex } from "@/utils/keyboardNavigation";
+import { SecurityTab } from "./components/SecurityTab";
 
-const tabs = [{ id: "profile", label: "Profile" }];
+const tabs = [
+    { id: "profile", label: "Profile" },
+    { id: "security", label: "Security" },
+];
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState("profile");
@@ -62,6 +66,7 @@ export default function SettingsPage() {
                     className="flex-1 overflow-y-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#BCED09]"
                 >
                     {activeTab === "profile" && <ProfileTab />}
+                    {activeTab === "security" && <SecurityTab />}
                     {activeTab === "wallets" && (
                         <div className="px-4 py-16 text-[#8F8389] md:px-12">
                             Wallets settings configuration pending MVP integration.
@@ -70,11 +75,6 @@ export default function SettingsPage() {
                     {activeTab === "payments" && (
                         <div className="px-4 py-16 text-[#8F8389] md:px-12">
                             Payments settings configuration pending MVP integration.
-                        </div>
-                    )}
-                    {activeTab === "security" && (
-                        <div className="px-4 py-16 text-[#8F8389] md:px-12">
-                            Security settings configuration pending MVP integration.
                         </div>
                     )}
                 </main>

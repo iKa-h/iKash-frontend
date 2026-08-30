@@ -104,6 +104,15 @@ export const walletService = {
         return await stellarWalletKitService.signTransaction(xdr, address ?? undefined);
     },
 
+    async detectNetwork() {
+        return await stellarWalletKitService.detectNetwork();
+    },
+
+    getExpectedNetwork() {
+        const raw = (process.env.NEXT_PUBLIC_STELLAR_NETWORK || "testnet").toLowerCase();
+        return raw === "mainnet" || raw === "public" ? "mainnet" : "testnet";
+    },
+
     async authenticate(publicKey: string): Promise<string> {
         if (authInFlight) {
             return authInFlight;

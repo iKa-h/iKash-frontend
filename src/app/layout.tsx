@@ -3,7 +3,7 @@ import "./globals.css";
 import { NotificationProvider } from "@/features/notifications";
 import { CookieConsentBanner } from "./components/CookieConsentBanner";
 import { UserProvider } from "../features/user/presentation/context/UserContext";
-import { WalletProvider } from "../features/wallet";
+import { WalletProvider, WrongNetworkBanner } from "../features/wallet";
 import { Space_Grotesk } from "next/font/google";
 import { QueryProvider } from "./providers/QueryProvider";
 
@@ -31,6 +31,7 @@ export default function RootLayout({
           <NotificationProvider>
             <UserProvider>
               <WalletProvider>
+                <WrongNetworkBanner />
                 {children}
                 <CookieConsentBanner />
               </WalletProvider>
