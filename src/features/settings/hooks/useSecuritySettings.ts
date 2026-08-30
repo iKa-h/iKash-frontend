@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@/features/user/presentation/context/UserContext";
-import { useNotification } from "@/app/components/NotificationContext";
+import { useNotifications } from "@/features/notifications";
 import { securitySettingsService } from "../services/security-settings.service";
 import type { SecurityPreferences } from "../types/security-settings.types";
 
@@ -16,7 +16,7 @@ const INITIAL_PREFERENCES: SecurityPreferences = {
 
 export function useSecuritySettings() {
     const { accessToken } = useUser();
-    const { notify } = useNotification();
+    const { notify } = useNotifications();
 
     const [preferences, setPreferences] = useState<SecurityPreferences>(INITIAL_PREFERENCES);
     const [isLoading, setIsLoading] = useState(true);
