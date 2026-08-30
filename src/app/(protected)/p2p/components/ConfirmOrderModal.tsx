@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useId, useMemo, useRef } from "react";
 import { Offer } from "@/features/offer/models/offer";
 import { Users } from "@/features/user/models/users";
 import { useUser } from "@/features/user/presentation/context/UserContext";
@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useNotifications } from "@/features/notifications";
 import { PaymentMethodOption } from "@/features/paymentMethod/models/paymentMethod";
 import { SignatureCancelledModal } from "./SignatureCancelledModal";
+import { getRovingFocusIndex } from "@/utils/keyboardNavigation";
 
 interface ConfirmOrderModalProps {
     offer: Offer;
@@ -41,7 +42,25 @@ export function ConfirmOrderModal({ offer, creator, onClose }: ConfirmOrderModal
     const [errorMsg, setErrorMsg] = useState("");
     const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
     const [pendingEscrowId, setPendingEscrowId] = useState<string | null>(null);
+    const paymentDropdownRef = useRef<HTMLDivElement>(null);
+    const paymentTriggerRef = useRef<HTMLButtonElement>(null);
+    const paymentOptionRefs = useRef<Array<HTMLButtonElement | null>>([]);
+    const paymentListboxId = useId();
+    const paymentLabelId = useId();
+    const paymentTriggerId = useId();
+    const [activePaymentIndex, setActivePaymentIndex] = useState(0);
     const sig = useSignatureCancellation();
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (paymentDropdownRef.current && !paymentDropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const isBuyOperation = offer.type === "sell"; // Merchant is selling, User is BUYING crypto
     const priceNum = parseFloat(offer.price) || 0;
@@ -126,6 +145,76 @@ export function ConfirmOrderModal({ offer, creator, onClose }: ConfirmOrderModal
     const selectedMethodObj = useMemo(() => {
         return intersectingMethods.find(m => m.id === selectedPaymentId) || intersectingMethods[0];
     }, [intersectingMethods, selectedPaymentId]);
+
+    const focusPaymentOption = (index: number) => {
+        setActivePaymentIndex(index);
+        requestAnimationFrame(() => paymentOptionRefs.current[index]?.focus());
+    };
+
+    const openPaymentDropdown = (index: number) => {
+        setIsDropdownOpen(true);
+        focusPaymentOption(index);
+    };
+
+    const closePaymentDropdown = (restoreFocus = false) => {
+        setIsDropdownOpen(false);
+        if (restoreFocus) {
+            requestAnimationFrame(() => paymentTriggerRef.current?.focus());
+        }
+    };
+
+    const selectPaymentMethod = (index: number) => {
+        const method = intersectingMethods[index];
+        if (!method) return;
+        setSelectedPaymentId(method.id);
+        closePaymentDropdown(true);
+    };
+
+    const handlePaymentTriggerKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+        const selectedIndex = Math.max(0, intersectingMethods.findIndex(method => method.id === selectedPaymentId));
+
+        if (event.key === "ArrowDown") {
+            event.preventDefault();
+            openPaymentDropdown(isDropdownOpen ? (activePaymentIndex + 1) % intersectingMethods.length : selectedIndex);
+        } else if (event.key === "ArrowUp") {
+            event.preventDefault();
+            openPaymentDropdown(isDropdownOpen
+                ? (activePaymentIndex - 1 + intersectingMethods.length) % intersectingMethods.length
+                : selectedIndex);
+        } else if (event.key === "Home") {
+            event.preventDefault();
+            openPaymentDropdown(0);
+        } else if (event.key === "End") {
+            event.preventDefault();
+            openPaymentDropdown(intersectingMethods.length - 1);
+        } else if (event.key === "Escape" && isDropdownOpen) {
+            event.preventDefault();
+            closePaymentDropdown(true);
+        }
+    };
+
+    const handlePaymentOptionKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+        if (event.key === "Escape") {
+            event.preventDefault();
+            closePaymentDropdown(true);
+            return;
+        }
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            selectPaymentMethod(index);
+            return;
+        }
+        if (event.key === "Tab") {
+            setIsDropdownOpen(false);
+            return;
+        }
+
+        const nextIndex = getRovingFocusIndex(event.key, index, intersectingMethods.length, "vertical");
+        if (nextIndex !== null) {
+            event.preventDefault();
+            focusPaymentOption(nextIndex);
+        }
+    };
 
     // Real-time conversion calculations
     const inputNum = parseFloat(amountToPay) || 0;
@@ -378,15 +467,30 @@ export function ConfirmOrderModal({ offer, creator, onClose }: ConfirmOrderModal
                     <div className="flex flex-col gap-6">
                         {/* Payment Method Select */}
                         <div className="flex flex-col gap-2">
-                            <label className="text-[#C6C9AC] text-xs font-normal tracking-[1.2px] uppercase font-space">
+                            <label id={paymentLabelId} className="text-[#C6C9AC] text-xs font-normal tracking-[1.2px] uppercase font-space">
                                 PAYMENT METHOD
                             </label>
-                            <div className="relative">
+                            <div ref={paymentDropdownRef} className="relative">
                                 {intersectingMethods.length > 0 ? (
                                     <>
-                                        <div
-                                            className="bg-[#0D1117] border border-[#1C2128] rounded-xl px-5 py-4 flex items-center justify-between cursor-pointer hover:border-[#DAFF00]/40 transition-colors"
-                                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                        <button
+                                            ref={paymentTriggerRef}
+                                            id={paymentTriggerId}
+                                            type="button"
+                                            aria-haspopup="listbox"
+                                            aria-expanded={isDropdownOpen}
+                                            aria-controls={isDropdownOpen ? paymentListboxId : undefined}
+                                            aria-labelledby={`${paymentLabelId} ${paymentTriggerId}`}
+                                            className="w-full bg-[#0D1117] border border-[#1C2128] rounded-xl px-5 py-4 flex items-center justify-between cursor-pointer hover:border-[#DAFF00]/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DAFF00] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0E0E13]"
+                                            onClick={() => {
+                                                if (isDropdownOpen) {
+                                                    closePaymentDropdown();
+                                                    return;
+                                                }
+                                                const selectedIndex = Math.max(0, intersectingMethods.findIndex(method => method.id === selectedPaymentId));
+                                                openPaymentDropdown(selectedIndex);
+                                            }}
+                                            onKeyDown={handlePaymentTriggerKeyDown}
                                         >
                                             <span className="text-[#F1F5F9] text-[16px] font-semibold">
                                                 {selectedMethodObj 
@@ -396,17 +500,25 @@ export function ConfirmOrderModal({ offer, creator, onClose }: ConfirmOrderModal
                                             <svg className={`w-5 h-5 text-[#94A3B8] transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                                             </svg>
-                                        </div>
+                                        </button>
                                         {isDropdownOpen && (
-                                            <div className="absolute z-20 w-full mt-2 bg-[#1a1d27] rounded-xl border border-white/10 shadow-2xl overflow-hidden max-h-60 overflow-y-auto">
-                                                {intersectingMethods.map(m => (
-                                                    <div
+                                            <div
+                                                id={paymentListboxId}
+                                                role="listbox"
+                                                aria-labelledby={paymentLabelId}
+                                                className="absolute z-20 w-full mt-2 bg-[#1a1d27] rounded-xl border border-white/10 shadow-2xl overflow-hidden max-h-60 overflow-y-auto"
+                                            >
+                                                {intersectingMethods.map((m, index) => (
+                                                    <button
+                                                        ref={(element) => { paymentOptionRefs.current[index] = element; }}
                                                         key={m.id}
-                                                        onClick={() => {
-                                                            setSelectedPaymentId(m.id);
-                                                            setIsDropdownOpen(false);
-                                                        }}
-                                                        className={`px-5 py-3 text-[16px] cursor-pointer transition-colors flex items-center justify-between ${
+                                                        type="button"
+                                                        role="option"
+                                                        aria-selected={selectedPaymentId === m.id}
+                                                        tabIndex={activePaymentIndex === index ? 0 : -1}
+                                                        onClick={() => selectPaymentMethod(index)}
+                                                        onKeyDown={(event) => handlePaymentOptionKeyDown(event, index)}
+                                                        className={`w-full px-5 py-3 text-left text-[16px] cursor-pointer transition-colors flex items-center justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#DAFF00] ${
                                                             selectedPaymentId === m.id 
                                                             ? 'bg-[#DAFF00]/15 text-[#DAFF00] font-bold' 
                                                             : 'text-[#F1F5F9] hover:bg-white/10'
@@ -416,7 +528,7 @@ export function ConfirmOrderModal({ offer, creator, onClose }: ConfirmOrderModal
                                                         {selectedPaymentId === m.id && (
                                                             <span className="text-[#DAFF00] font-bold">✓</span>
                                                         )}
-                                                    </div>
+                                                    </button>
                                                 ))}
                                             </div>
                                         )}

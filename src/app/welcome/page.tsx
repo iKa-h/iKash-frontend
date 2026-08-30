@@ -657,7 +657,7 @@ export function ConnectWalletModal({
                   onClose();
                   router.push("/register");
                 }}
-                className="group flex items-center justify-between w-full p-5 bg-[#BCED09]/10 border border-[#BCED09]/30 rounded-2xl hover:bg-[#BCED09]/20 hover:border-[#BCED09] hover:scale-[1.01] transition-all duration-300 cursor-pointer text-left shadow-[0_0_15px_rgba(188,237,9,0.1)]"
+                className="group flex w-full items-center justify-between p-5 bg-[#BCED09]/10 border border-[#BCED09]/30 rounded-2xl hover:bg-[#BCED09]/20 hover:border-[#BCED09] hover:scale-[1.01] transition-all duration-300 cursor-pointer text-left shadow-[0_0_15px_rgba(188,237,9,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BCED09] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0e12]"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#BCED09] shadow-md">
@@ -716,6 +716,7 @@ export function ConnectWalletModal({
                     <button
                       key={wallet.id}
                       type="button"
+                      aria-label={isUnavailable ? `Install ${wallet.name}` : `Connect ${wallet.name}`}
                       onClick={() => {
                         if (isUnavailable) {
                           window.open(wallet.url, "_blank", "noopener,noreferrer");
@@ -723,7 +724,7 @@ export function ConnectWalletModal({
                         }
                         handleWalletConnect(wallet.id);
                       }}
-                      className={`group flex flex-col items-center text-center gap-2 p-4 bg-[#18181b]/40 border border-white/5 rounded-2xl transition-all duration-300 cursor-pointer ${isUnavailable ? "opacity-60" : "hover:bg-[#1d1f25] hover:border-[#BCED09] hover:scale-[1.03]"
+                      className={`group flex flex-col items-center text-center gap-2 p-4 bg-[#18181b]/40 border border-white/5 rounded-2xl transition-all duration-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BCED09] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0e12] ${isUnavailable ? "opacity-60" : "hover:bg-[#1d1f25] hover:border-[#BCED09] hover:scale-[1.03]"
                         }`}
                     >
                       <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-tr from-white/15 to-white/5 shadow-md overflow-hidden relative">

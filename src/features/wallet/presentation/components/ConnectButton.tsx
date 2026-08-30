@@ -3,20 +3,30 @@
 import { useWalletContext } from "../context/WalletContext";
 import { WalletButtonProps } from "../utils/WalletButtonProps";
 
-export function ConnectButton({ label, description, walletId, icon }: WalletButtonProps) {
+export function ConnectButton({ label, description, walletId, icon, menuItem = false }: WalletButtonProps) {
     const { isConnected, isLoading, error, connect, disconnect } = useWalletContext();
 
     if (isConnected) {
         return (
             <div>
-                <button onClick={disconnect}>Disconnect Wallet</button>
+                <button
+                    type="button"
+                    role={menuItem ? "menuitem" : undefined}
+                    onClick={disconnect}
+                    className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#BCED09]"
+                >
+                    Disconnect Wallet
+                </button>
             </div>
         );
     }
 
     return (
         <div>
-            <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors duration-100 cursor-pointer"
+            <button
+                type="button"
+                role={menuItem ? "menuitem" : undefined}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors duration-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#BCED09]"
                 onClick={() => connect(walletId)} disabled={isLoading}
             >
                 {icon && (

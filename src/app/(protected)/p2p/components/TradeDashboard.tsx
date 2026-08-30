@@ -15,6 +15,9 @@ import { Offer } from "@/features/offer/models/offer";
 import { OfferFilters } from "@/features/offer/components/OfferFilters";
 import { buildOfferQuery } from "@/features/offer/utils/build-offer-query";
 import { PaymentMethodOption } from "@/features/paymentMethod/models/paymentMethod";
+import { getRovingFocusIndex } from "@/utils/keyboardNavigation";
+
+const tradeTabs = ["Buy", "Sell"] as const;
 
 // ----------------------------------------------------------
 // Helper: resolve a payment method option to a display name
@@ -146,6 +149,16 @@ function TradeDashboardInner() {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
 
+    const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+        const nextIndex = getRovingFocusIndex(event.key, index, tradeTabs.length, "horizontal");
+        if (nextIndex === null) return;
+
+        event.preventDefault();
+        const nextTab = tradeTabs[nextIndex];
+        setTab(nextTab);
+        document.getElementById(`tab-${nextTab.toLowerCase()}`)?.focus();
+    };
+
     // Filter state
     const {
         filters,
@@ -249,13 +262,23 @@ function TradeDashboardInner() {
             {/* Top toolbar: Tab switcher + Create button */}
             <div className="w-full mb-6 px-2">
                 <div className="flex flex-col md:flex-row items-center justify-between mb-5 gap-4">
-                    <div className="flex bg-[#1a1a1a] rounded-xl p-1 w-full md:w-auto">
-                        {["Buy", "Sell"].map((t) => (
+                    <div
+                        role="tablist"
+                        aria-label="Trade type"
+                        className="flex bg-[#1a1a1a] rounded-xl p-1 w-full md:w-auto"
+                    >
+                        {tradeTabs.map((t, index) => (
                             <button
                                 key={t}
                                 id={`tab-${t.toLowerCase()}`}
+                                type="button"
+                                role="tab"
+                                aria-selected={tab === t}
+                                aria-controls={`offers-${t.toLowerCase()}-panel`}
+                                tabIndex={tab === t ? 0 : -1}
                                 onClick={() => setTab(t)}
-                                className={`flex-1 md:flex-none px-6 py-3 rounded-xl text-base font-bold transition-all duration-200
+                                onKeyDown={(event) => handleTabKeyDown(event, index)}
+                                className={`flex-1 md:flex-none px-6 py-3 rounded-xl text-base font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BCED09] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a1a1a]
                                 ${tab === t
                                         ? "bg-[#343434] text-[#BCED09]"
                                         : "text-[#6b7280] hover:text-white"
@@ -305,7 +328,13 @@ function TradeDashboardInner() {
             </div>
 
             {/* Offer list */}
-            <div className="flex flex-col w-full px-2">
+            <div
+                id={`offers-${tab.toLowerCase()}-panel`}
+                role="tabpanel"
+                aria-labelledby={`tab-${tab.toLowerCase()}`}
+                tabIndex={0}
+                className="flex flex-col w-full px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BCED09]"
+            >
                 {isLoading ? (
                     <div className="space-y-4">
                         {[1, 2, 3].map(i => <OfferSkeleton key={i} />)}

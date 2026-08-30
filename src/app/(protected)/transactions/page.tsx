@@ -142,17 +142,19 @@ export default function TransactionsPage() {
 
                             {/* Status Filter */}
                             <div className="flex flex-col gap-3">
-                                <label className="text-[10px] text-[#64748B] font-bold tracking-[1px] uppercase">
+                                <label id="transaction-status-filter-label" className="text-[10px] text-[#64748B] font-bold tracking-[1px] uppercase">
                                     Filter By Status
                                 </label>
-                                <div className="flex flex-wrap gap-2">
+                                <div role="group" aria-labelledby="transaction-status-filter-label" className="flex flex-wrap gap-2">
                                     {["ALL", "PENDING", "COMPLETED", "CANCELLED"].map((status) => {
                                         const isActive = statusFilter === status;
                                         return (
                                             <button
                                                 key={status}
+                                                type="button"
+                                                aria-pressed={isActive}
                                                 onClick={() => setStatusFilter(status)}
-                                                className={`text-[10px] font-bold p-[6px_16px] rounded-lg transition-colors cursor-pointer uppercase ${
+                                                className={`text-[10px] font-bold p-[6px_16px] rounded-lg transition-colors cursor-pointer uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CEF100] focus-visible:ring-offset-2 focus-visible:ring-offset-[#161618] ${
                                                     isActive
                                                         ? "bg-[#CEF100] text-black"
                                                         : "bg-[#1F1F25] text-[#E4E1E9] hover:bg-gray-800"

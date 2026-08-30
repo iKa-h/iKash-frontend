@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Download, FileText, FileSpreadsheet, Check, AlertCircle, Loader2, ChevronDown } from "lucide-react";
 import { logger } from "../utils/logger";
+import { getRovingFocusIndex } from "@/utils/keyboardNavigation";
 
 interface TransactionExportMenuProps {
     disabled?: boolean;
@@ -13,6 +14,9 @@ export function TransactionExportMenu({ disabled = false, onExport }: Transactio
     const [exportStatus, setExportStatus] = useState<"idle" | "success" | "error">("idle");
     const [errorMessage, setErrorMessage] = useState("");
     const menuRef = useRef<HTMLDivElement>(null);
+    const triggerRef = useRef<HTMLButtonElement>(null);
+    const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
+    const menuId = "transaction-export-menu";
 
     // Close menu when clicking outside
     useEffect(() => {
@@ -24,6 +28,51 @@ export function TransactionExportMenu({ disabled = false, onExport }: Transactio
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    const openMenu = (focusIndex?: number) => {
+        setIsOpen(true);
+        if (focusIndex !== undefined) {
+            requestAnimationFrame(() => itemRefs.current[focusIndex]?.focus());
+        }
+    };
+
+    const closeMenu = (restoreFocus = false) => {
+        setIsOpen(false);
+        if (restoreFocus) {
+            requestAnimationFrame(() => triggerRef.current?.focus());
+        }
+    };
+
+    const handleTriggerKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+        if (event.key === "ArrowDown" || event.key === "Home") {
+            event.preventDefault();
+            openMenu(0);
+        } else if (event.key === "ArrowUp" || event.key === "End") {
+            event.preventDefault();
+            openMenu(1);
+        } else if (event.key === "Escape" && isOpen) {
+            event.preventDefault();
+            closeMenu(true);
+        }
+    };
+
+    const handleItemKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+        if (event.key === "Escape") {
+            event.preventDefault();
+            closeMenu(true);
+            return;
+        }
+        if (event.key === "Tab") {
+            setIsOpen(false);
+            return;
+        }
+
+        const nextIndex = getRovingFocusIndex(event.key, index, 2, "vertical");
+        if (nextIndex !== null) {
+            event.preventDefault();
+            itemRefs.current[nextIndex]?.focus();
+        }
+    };
 
     const handleExportClick = async (format: "csv" | "pdf") => {
         setIsOpen(false);
@@ -54,16 +103,21 @@ export function TransactionExportMenu({ disabled = false, onExport }: Transactio
         <div className="relative inline-block text-left" ref={menuRef}>
             <div className="flex flex-col items-end gap-2">
                 <button
+                    ref={triggerRef}
                     id="export-history-btn"
                     type="button"
                     disabled={disabled || isExporting}
                     onClick={() => setIsOpen(!isOpen)}
+                    onKeyDown={handleTriggerKeyDown}
+                    aria-haspopup="menu"
+                    aria-expanded={isOpen}
+                    aria-controls={isOpen ? menuId : undefined}
                     className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold uppercase text-[12px] tracking-wider transition-all duration-200 cursor-pointer ${
                         disabled
                             ? "bg-[#1F1F25] text-[#4B5563] border border-[#2D3748] cursor-not-allowed"
                             : isExporting
                             ? "bg-[#1F1F25] text-white border border-[#CEF100]/20"
-                            : "bg-[#1F1F25] text-white border border-[#2A2A2A] hover:border-[#CEF100] hover:bg-[#1C1C24]"
+                            : "bg-[#1F1F25] text-white border border-[#2A2A2A] hover:border-[#CEF100] hover:bg-[#1C1C24] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#CEF100] focus-visible:ring-offset-2 focus-visible:ring-offset-[#010308]"
                     }`}
                 >
                     {isExporting ? (
@@ -82,19 +136,32 @@ export function TransactionExportMenu({ disabled = false, onExport }: Transactio
 
                 {/* Dropdown menu */}
                 {isOpen && !disabled && !isExporting && (
-                    <div className="absolute right-0 top-14 z-50 w-52 rounded-xl bg-[#161618] border border-[#1F2937] p-1.5 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div
+                        id={menuId}
+                        role="menu"
+                        aria-labelledby="export-history-btn"
+                        className="absolute right-0 top-14 z-50 w-52 rounded-xl bg-[#161618] border border-[#1F2937] p-1.5 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150"
+                    >
                         <button
+                            ref={(element) => { itemRefs.current[0] = element; }}
                             id="export-csv-btn"
+                            type="button"
+                            role="menuitem"
                             onClick={() => handleExportClick("csv")}
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-[#CBD5E1] hover:bg-[#CEF100] hover:text-black transition-colors cursor-pointer"
+                            onKeyDown={(event) => handleItemKeyDown(event, 0)}
+                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-[#CBD5E1] hover:bg-[#CEF100] hover:text-black transition-colors cursor-pointer focus-visible:outline-none focus-visible:bg-[#CEF100] focus-visible:text-black"
                         >
                             <FileSpreadsheet className="w-4 h-4" />
                             <span>Export as CSV</span>
                         </button>
                         <button
+                            ref={(element) => { itemRefs.current[1] = element; }}
                             id="export-pdf-btn"
+                            type="button"
+                            role="menuitem"
                             onClick={() => handleExportClick("pdf")}
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-[#CBD5E1] hover:bg-[#CEF100] hover:text-black transition-colors cursor-pointer"
+                            onKeyDown={(event) => handleItemKeyDown(event, 1)}
+                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-[#CBD5E1] hover:bg-[#CEF100] hover:text-black transition-colors cursor-pointer focus-visible:outline-none focus-visible:bg-[#CEF100] focus-visible:text-black"
                         >
                             <FileText className="w-4 h-4" />
                             <span>Export as PDF</span>

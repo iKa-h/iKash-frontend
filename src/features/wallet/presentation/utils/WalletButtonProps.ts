@@ -3,4 +3,5 @@ export type WalletButtonProps = {
     description: string;
     walletId: string;
     icon?: string;
+    menuItem?: boolean;
 }

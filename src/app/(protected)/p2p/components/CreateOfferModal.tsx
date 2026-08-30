@@ -7,6 +7,9 @@ import { CloseModalProps } from '@/app/utils/closeModalProps';
 import { useOffers } from '@/features/offer/hooks/useOffers';
 import { useUser } from '@/features/user/presentation/context/UserContext';
 import { useWallet, useWalletBalance } from '@/features/wallet';
+import { getRovingFocusIndex } from '@/utils/keyboardNavigation';
+
+const offerTypeTabs = ["Buy", "Sell"] as const;
 
 export function CreateOfferModal({ onClose }: CloseModalProps) {
     const { currentUser } = useUser();
@@ -33,6 +36,15 @@ export function CreateOfferModal({ onClose }: CloseModalProps) {
 
     const [checked, setChecked] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+        const nextIndex = getRovingFocusIndex(event.key, index, offerTypeTabs.length, "horizontal");
+        if (nextIndex === null) return;
+
+        event.preventDefault();
+        const nextTab = offerTypeTabs[nextIndex];
+        setTab(nextTab);
+        document.getElementById(`create-offer-tab-${nextTab.toLowerCase()}`)?.focus();
+    };
     const toggle = (id: string) => {
         setChecked(prev =>
             prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
@@ -115,13 +127,23 @@ export function CreateOfferModal({ onClose }: CloseModalProps) {
                         <div>
                             <p className="text-[#64748B]">Offer type</p>
                             <div className="flex flex-col h-full items-center justify-center mb-6">
-                                <div className="grid grid-cols-2 bg-[#05050980] w-full rounded-lg p-1">
-                                    {["Buy", "Sell"].map((t) => (
+                                <div
+                                    role="tablist"
+                                    aria-label="Offer type"
+                                    className="grid grid-cols-2 bg-[#05050980] w-full rounded-lg p-1"
+                                >
+                                    {offerTypeTabs.map((t, index) => (
                                         <button
                                             key={t}
+                                            id={`create-offer-tab-${t.toLowerCase()}`}
                                             type='button'
+                                            role="tab"
+                                            aria-selected={tab === t}
+                                            aria-controls="create-offer-details-panel"
+                                            tabIndex={tab === t ? 0 : -1}
                                             onClick={() => setTab(t)}
-                                            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all duration-200
+                                            onKeyDown={(event) => handleTabKeyDown(event, index)}
+                                            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BCED09] focus-visible:ring-offset-2 focus-visible:ring-offset-[#050509]
                                     ${tab === t
                                                     ? "bg-[#BCED09] text-[#050509]"
                                                     : "text-[#94A3B8] hover:text-white"
@@ -133,7 +155,12 @@ export function CreateOfferModal({ onClose }: CloseModalProps) {
                                 </div>
                             </div>
                         </div>
-                        <div className="mt-3">
+                        <div
+                            id="create-offer-details-panel"
+                            role="tabpanel"
+                            aria-labelledby={`create-offer-tab-${tab.toLowerCase()}`}
+                            className="mt-3"
+                        >
                             <p className="text-[#CBD5E1]">Crypto Asset</p>
                             <div className="flex items-center gap-4 bg-[#0D1117] border border-[#1C2128] rounded-xl px-5 py-4 select-none">
                                 <Image src={usdcAsset.icon} width={32} height={32} alt="USDC icon" />
